@@ -98,31 +98,23 @@ export function Topbar({ title }: TopbarProps) {
     top: 'calc(100% + 8px)',
     right: 0,
     zIndex: 100,
-    background: 'rgba(13,13,26,0.97)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: '16px',
-    boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,106,247,0.1)',
+    background: 'var(--color-bg-card)',
+    backdropFilter: 'blur(18px)',
+    WebkitBackdropFilter: 'blur(18px)',
+    border: '1px solid var(--color-border)',
+    borderRadius: '12px',
+    boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--color-accent-glow)',
   };
 
   return (
     <header
-      className="flex items-center justify-between px-6 shrink-0"
-      style={{
-        height: '60px',
-        background: 'rgba(7,7,15,0.9)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        position: 'relative',
-        zIndex: 50,
-      }}
+      className="flex items-center justify-between px-6 shrink-0 glass"
+      style={{ height: 60, position: 'relative', zIndex: 50, borderBottom: '1px solid var(--color-border)' }}
     >
       {/* Title */}
-      <h1 className="text-sm font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>{title}</h1>
+      <h1 className="text-base font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>{title}</h1>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {/* Clock */}
         <div className="mr-2 px-3 py-1.5 rounded-lg text-xs font-mono"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--color-text-secondary)' }}>
@@ -136,9 +128,9 @@ export function Topbar({ title }: TopbarProps) {
           </Button>
 
           {searchOpen && (
-            <div style={{ ...panelStyle, width: '320px', right: 0 }}>
+            <div style={{ ...panelStyle, width: 320, right: 0 }}>
               {/* Search input */}
-              <div style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <div style={{ padding: 12, borderBottom: '1px solid var(--color-border)' }}>
                 <div style={{ position: 'relative' }}>
                   <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
                   <input
@@ -146,31 +138,23 @@ export function Topbar({ title }: TopbarProps) {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Search pages..."
-                    style={{
-                      width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8,
-                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: 10, fontSize: 13, color: 'var(--color-text-primary)',
-                      outline: 'none', fontFamily: 'var(--font-sans)',
-                    }}
+                    className="input"
+                    style={{ paddingLeft: 36 }}
                   />
                 </div>
               </div>
               {/* Results */}
-              <div style={{ maxHeight: 280, overflowY: 'auto', padding: '6px' }}>
+              <div style={{ maxHeight: 280, overflowY: 'auto', padding: 6 }}>
                 {filtered.length === 0 ? (
-                  <p style={{ padding: '16px', textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)' }}>No results found</p>
+                  <p style={{ padding: 16, textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)' }}>No results found</p>
                 ) : filtered.map(item => (
                   <button key={item.path} onClick={() => goTo(item.path)}
-                    style={{
-                      width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10,
-                      fontSize: 13, color: 'var(--color-text-primary)', background: 'transparent',
-                      border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,106,247,0.12)')}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm"
+                    style={{ color: 'var(--color-text-primary)', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', gap: 8 }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,106,247,0.08)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <span style={{ color: 'var(--color-accent)', fontSize: 11 }}>→</span>
+                    <span style={{ color: 'var(--color-accent)', fontSize: 12 }}>→</span>
                     {item.label}
                   </button>
                 ))}
@@ -191,9 +175,9 @@ export function Topbar({ title }: TopbarProps) {
           </Button>
 
           {notifOpen && (
-            <div style={{ ...panelStyle, width: '340px' }}>
+            <div style={{ ...panelStyle, width: 340 }}>
               {/* Header */}
-              <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>Notifications</span>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   {notifications.length > 0 && (
@@ -244,7 +228,7 @@ export function Topbar({ title }: TopbarProps) {
         {/* Avatar */}
         {user && (
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ml-2 cursor-pointer"
-            style={{ background: 'linear-gradient(135deg, #7c6af7, #38bdf8)', boxShadow: '0 0 12px rgba(124,106,247,0.35)' }}
+            style={{ background: 'linear-gradient(135deg, var(--color-accent), var(--color-info))', boxShadow: '0 0 12px var(--color-accent-glow)' }}
             title={user.name}
             onClick={() => navigate('/profile')}
           >
