@@ -1,0 +1,25 @@
+appId: com.studyos.app
+productName: StudyOS
+directories:
+  output: dist_electron
+files:
+  - build/**
+  - dist/**
+  - node_modules/**
+  - package.json
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target:
+    - dmg
+dmg:
+  contents:
+    - /Applications
+publish:
+  provider: generic # configure your update server or GitHub Releases
+  url: https://your-update-server.example.com/updates
