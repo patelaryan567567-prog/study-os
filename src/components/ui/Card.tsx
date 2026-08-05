@@ -1,94 +1,53 @@
-import { motion, useReducedMotion } from "framer-motion";
+import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/utils";
+import { useTheme } from "@/context/ThemeContext";
 
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-  hover?: boolean;
-  glow?: boolean;
-  onClick?: () => void;
-  padding?: "sm" | "md" | "lg";
-  variant?: "default" | "elevated" | "sunken" | "accent";
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "glass" | "outline";
+  hoverable?: boolean;
+  children: ReactNode;
 }
 
-const paddings = {
-  sm: "p-3 md:p-4 lg:p-5",
-  md: "p-4 md:p-5 lg:p-6",
-  lg: "p-5 md:p-6 lg:p-7",
-};
-
-const cardStyles: Record<string, React.CSSProperties> = {
-  default: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
-  },
-  elevated: {
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
-  },
-  sunken: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "inset 0 2px 10px rgba(0,0,0,0.28)",
-  },
-  accent: {
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(124,106,247,0.18)",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
-  },
+const variants: Record<"default" | "glass" | "outline", string> = {
+  default: "border",
+  glass: "border backdrop-blur-xl",
+  outline: "border bg-transparent",
 };
 
 export function Card({
-  children,
   className,
-  hover,
-  glow,
-  onClick,
-  padding = "md",
   variant = "default",
+  hoverable = false,
+  children,
+  ...props
 }: CardProps) {
-  const shouldReduceMotion = useReducedMotion();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
+  const variantClasses = {
+    default: isDark
+      ? "bg-gray-800/80 border-gray-700"
+      : "bg-white border-gray-200",
+    glass: isDark
+      ? "bg-gray-800/40 backdrop-blur-xl border-gray-700/50"
+      : "bg-white/60 backdrop-blur-xl border-gray-200/50",
+    outline: isDark ? "border-gray-700" : "border-gray-200",
+  };
+
   return (
-    <motion.div
-      whileHover={
-        hover && !shouldReduceMotion
-          ? {
-              scale: 1.01,
-              y: -4,
-              boxShadow:
-                "0 26px 62px rgba(59,130,246,0.18), 0 0 0 1px rgba(59,130,246,0.12)",
-            }
-          : undefined
-      }
-      whileTap={onClick && !shouldReduceMotion ? { scale: 0.99 } : undefined}
-      onClick={onClick}
+    <div
       className={cn(
-        "relative overflow-hidden rounded-[20px] transition-all",
-        paddings[padding],
-        hover && "cursor-pointer",
-        glow && "glow-accent",
+        "rounded-2xl border transition-all duration-200",
+        variantClasses[variant],
+        hoverable && "hover:shadow-lg hover:scale-[1.01]",
+        isDark
+          ? "shadow-[0_8px_30px_rgba(0,0,0,0.3)]"
+          : "shadow-[0_8px_30px_rgba(0,0,0,0.05)]",
         className,
       )}
-      style={{
-        ...cardStyles[variant],
-        ...{
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderRadius: "20px",
-          transition: "all 250ms ease",
-        },
-      }}
+      {...props}
     >
-      <div
-        className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full opacity-10"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 50%)",
-        }}
-      />
       {children}
-    </motion.div>
+    </div>
   );
 }

@@ -7,15 +7,21 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
+  Menu,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useAppStore } from "@/store";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui";
 import { formatTime } from "@/utils";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/utils";
+import { useTheme } from "@/context/ThemeContext";
 
 interface TopbarProps {
   title: string;
+  onMenuClick: () => void;
 }
 
 const NAV_ITEMS = [
@@ -68,8 +74,10 @@ const notifIcon = {
   info: <Clock size={14} style={{ color: "var(--color-info)" }} />,
 };
 
-export function Topbar({ title }: TopbarProps) {
+export function Topbar({ title, onMenuClick }: TopbarProps) {
   const { user } = useAppStore();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
   const [searchOpen, setSearchOpen] = useState(false);
@@ -79,6 +87,10 @@ export function Topbar({ title }: TopbarProps) {
   const searchRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark");
+  };
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -147,29 +159,42 @@ export function Topbar({ title }: TopbarProps) {
 
   return (
     <header
-      className="sticky top-0 flex flex-wrap items-center justify-between gap-3 px-6 py-3 shrink-0"
+      className={cn(
+        "sticky top-0 flex flex-wrap items-center justify-between gap-3 px-6 py-3 shrink-0",
+        isDark
+          ? "bg-gray-900/85 border-b border-gray-800 text-white"
+          : "bg-white/85 border-b border-gray-200 text-gray-900",
+      )}
       style={{
         minHeight: "72px",
-        background: "rgba(8, 11, 25, 0.78)",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.22)",
+        boxShadow: isDark
+          ? "0 10px 40px rgba(0,0,0,0.28)"
+          : "0 10px 40px rgba(0,0,0,0.12)",
         position: "sticky",
         zIndex: 60,
       }}
     >
       {/* Title */}
-      <div className="min-w-0 flex-1">
-        <h1
-          className="text-[30px] font-extrabold tracking-tight truncate"
-          style={{ color: "var(--color-text-primary)" }}
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <button
+          onClick={onMenuClick}
+          className="rounded-xl border border-white/10 bg-white/5 p-2 text-gray-300 transition-all hover:bg-white/10 hover:text-white"
         >
-          {title}
-        </h1>
-        <p className="mt-1 text-sm text-[rgba(255,255,255,0.55)] hidden md:block truncate">
-          Stay focused and track your progress in one place.
-        </p>
+          <Menu className="h-5 w-5" />
+        </button>
+        <div className="min-w-0 flex-1">
+          <h1
+            className="text-[30px] font-extrabold tracking-tight truncate"
+            style={{ color: "var(--color-text-primary)" }}
+          >
+            {title}
+          </h1>
+          <p className="mt-1 text-sm text-[rgba(255,255,255,0.55)] hidden md:block truncate">
+            Stay focused and track your progress in one place.
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 shrink-0">
@@ -494,13 +519,31 @@ export function Topbar({ title }: TopbarProps) {
           )}
         </div>
 
+        <Button
+          variant="ghost"
+          size="icon"
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          onClick={toggleTheme}
+          className={cn(
+            "h-11 w-11 rounded-full transition-transform duration-200 ease-out",
+            isDark
+              ? "bg-white/5 text-yellow-300 hover:bg-white/10"
+              : "bg-gray-100/70 text-gray-700 hover:bg-gray-200",
+          )}
+        >
+          {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </Button>
+
         {/* Fullscreen */}
         <Button
           variant="ghost"
           size="icon"
           title="Fullscreen"
           onClick={toggleFullscreen}
-          className="h-11 w-11 rounded-full bg-white/5 transition-transform duration-200 ease-out hover:scale-105 hover:shadow-[0_0_18px_rgba(56,189,248,0.18)]"
+          className={cn(
+            "h-11 w-11 rounded-full transition-transform duration-200 ease-out hover:scale-105 hover:shadow-[0_0_18px_rgba(56,189,248,0.18)]",
+            isDark ? "bg-white/5" : "bg-white/5",
+          )}
           style={{ background: "rgba(255,255,255,0.05)" }}
         >
           <Maximize2 size={15} />

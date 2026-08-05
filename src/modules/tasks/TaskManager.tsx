@@ -16,6 +16,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedButton } from "@/components/ui/AnimatedButton";
 import { GradientText } from "@/components/ui/GradientText";
 import { cn } from "@/utils";
+import { useAuth } from "@/providers/AuthProvider";
+import { updateTask, awardUserRewards } from "@/services/firestoreService";
 
 interface Task {
   id: string;
@@ -67,12 +69,31 @@ export function TaskManager() {
     (task) => selectedType === "all" || task.type === selectedType,
   );
 
-  const toggleTask = (id: string) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task,
-      ),
+  const { firebaseUser } = useAuth();
+
+  const toggleTask = async (id: string) => {
+    const nextTasks = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task,
     );
+    setTasks(nextTasks);
+
+    const updatedTask = nextTasks.find((task) => task.id === id);
+    if (!updatedTask || !firebaseUser) return;
+
+    try {
+      await updateTask(firebaseUser.uid, id, {
+        completed: updatedTask.completed,
+        completedAt: updatedTask.completed
+          ? new Date().toISOString()
+          : undefined,
+      });
+
+      if (updatedTask.completed) {
+        await awardUserRewards(firebaseUser.uid, 10, 0);
+      }
+    } catch (error) {
+      console.error("Failed to persist task completion:", error);
+    }
   };
 
   const getPriorityColor = (priority: Task["priority"]) => {

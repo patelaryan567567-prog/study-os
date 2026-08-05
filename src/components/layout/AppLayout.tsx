@@ -1,25 +1,26 @@
-import { Outlet, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sidebar } from './Sidebar';
-import { Topbar } from './Topbar';
-import { useAppStore } from '@/store';
+import { Outlet, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sidebar } from "./Sidebar";
+import { Topbar } from "./Topbar";
+import { useAppStore } from "@/store";
+import { useState } from "react";
 
 const PAGE_TITLES: Record<string, string> = {
-  '/': 'Dashboard',
-  '/focus': 'Focus Mode',
-  '/planner': 'Study Planner',
-  '/tasks': 'Task Manager',
-  '/lectures': 'Lecture Tracker',
-  '/modules': 'Module Tracker',
-  '/backlog': 'Backlog Manager',
-  '/revision': 'Revision Manager',
-  '/notes': 'Notes',
-  '/analytics': 'Analytics',
-  '/gamification': 'Achievements',
-  '/calendar': 'Calendar',
-  '/ai': 'AI Assistant',
-  '/settings': 'Settings',
-  '/profile': 'Profile',
+  "/": "Dashboard",
+  "/focus": "Focus Mode",
+  "/planner": "Study Planner",
+  "/tasks": "Task Manager",
+  "/lectures": "Lecture Tracker",
+  "/modules": "Module Tracker",
+  "/backlog": "Backlog Manager",
+  "/revision": "Revision Manager",
+  "/notes": "Notes",
+  "/analytics": "Analytics",
+  "/gamification": "Achievements",
+  "/calendar": "Calendar",
+  "/ai": "AI Assistant",
+  "/settings": "Settings",
+  "/profile": "Profile",
 };
 
 const orbStyle = (
@@ -31,26 +32,30 @@ const orbStyle = (
   height: string,
   color: string,
 ) => ({
-  position: 'absolute' as const,
+  position: "absolute" as const,
   ...(top !== undefined && { top }),
   ...(bottom !== undefined && { bottom }),
   ...(left !== undefined && { left }),
   ...(right !== undefined && { right }),
   width,
   height,
-  borderRadius: '50%',
+  borderRadius: "50%",
   background: color,
-  filter: 'blur(80px)',
+  filter: "blur(80px)",
 });
 
 export function AppLayout() {
   const { focusMode } = useAppStore();
   const location = useLocation();
-  const title = PAGE_TITLES[location.pathname] ?? 'StudyOS';
+  const title = PAGE_TITLES[location.pathname] ?? "StudyOS";
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   if (focusMode) {
     return (
-      <div className="h-full w-full" style={{ background: 'var(--color-bg-primary)' }}>
+      <div
+        className="h-full w-full"
+        style={{ background: "var(--color-bg-primary)" }}
+      >
         <Outlet />
       </div>
     );
@@ -59,42 +64,85 @@ export function AppLayout() {
   return (
     <div
       className="flex h-full w-full overflow-hidden"
-      style={{ background: '#05060f' }}
+      style={{ background: "#05060f" }}
     >
       {/* ── Ambient orbs — subtle, no white ── */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        <div style={orbStyle('-200px', undefined, '-150px', undefined, '700px', '700px',
-          'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 60%)')} />
-        <div style={orbStyle('-100px', undefined, undefined, '5%', '500px', '500px',
-          'radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 60%)')} />
-        <div style={orbStyle(undefined, '-150px', '15%', undefined, '450px', '450px',
-          'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 60%)')} />
-        <div style={orbStyle(undefined, '-100px', undefined, '-100px', '500px', '500px',
-          'radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 60%)')} />
+      <div
+        className="fixed inset-0 pointer-events-none overflow-hidden"
+        style={{ zIndex: 0 }}
+      >
+        <div
+          style={orbStyle(
+            "-200px",
+            undefined,
+            "-150px",
+            undefined,
+            "700px",
+            "700px",
+            "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 60%)",
+          )}
+        />
+        <div
+          style={orbStyle(
+            "-100px",
+            undefined,
+            undefined,
+            "5%",
+            "500px",
+            "500px",
+            "radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 60%)",
+          )}
+        />
+        <div
+          style={orbStyle(
+            undefined,
+            "-150px",
+            "15%",
+            undefined,
+            "450px",
+            "450px",
+            "radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 60%)",
+          )}
+        />
+        <div
+          style={orbStyle(
+            undefined,
+            "-100px",
+            undefined,
+            "-100px",
+            "500px",
+            "500px",
+            "radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 60%)",
+          )}
+        />
         {/* Dot grid */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
-        }} />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
       </div>
 
       {/* ── Sidebar ── */}
-      <div style={{ position: 'relative', zIndex: 10 }}>
-        <Sidebar />
+      <div style={{ position: "relative", zIndex: 10 }}>
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* ── Main area ── */}
       <div
         className="flex flex-col flex-1 min-w-0 overflow-hidden"
         style={{
-          position: 'relative',
+          position: "relative",
           zIndex: 1,
-          backdropFilter: 'blur(2px)',
-          WebkitBackdropFilter: 'blur(2px)',
+          backdropFilter: "blur(2px)",
+          WebkitBackdropFilter: "blur(2px)",
         }}
       >
-        <Topbar title={title} />
+        <Topbar title={title} onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <AnimatePresence mode="wait">
             <motion.div
@@ -105,7 +153,7 @@ export function AppLayout() {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="h-full"
               style={{
-                padding: 'clamp(12px, 2vw, 24px)',
+                padding: "clamp(12px, 2vw, 24px)",
               }}
             >
               <Outlet />

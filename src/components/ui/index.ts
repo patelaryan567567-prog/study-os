@@ -18,4 +18,8 @@ export { EmptyState } from "./EmptyState";
 export { GlassCard } from "./GlassCard";
 export { AnimatedButton } from "./AnimatedButton";
 export { GradientText } from "./GradientText";
+export { GlowingText } from "./GlowingText";
+export { SearchBar } from "./SearchBar";
+export { NotificationBell } from "./NotificationBell";
+export { FullscreenToggle } from "./FullscreenToggle";
 export { Table } from "./Table";

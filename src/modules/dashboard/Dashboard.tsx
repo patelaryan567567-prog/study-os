@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientText } from "@/components/ui/GradientText";
+import { GlowingText } from "@/components/ui/GlowingText";
 import { cn } from "@/lib/utils";
 
 export function Dashboard() {
@@ -117,7 +118,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-5xl font-bold">
-                <span className="shimmer-text">Dashboard</span>
+                <GlowingText variant="primary">Dashboard</GlowingText>
               </h1>
               <p className="mt-2 text-xl text-gray-400">
                 Stay focused and track your progress in one place
