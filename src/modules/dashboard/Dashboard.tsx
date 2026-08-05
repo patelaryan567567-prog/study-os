@@ -1,612 +1,316 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { motion } from 'framer-motion';
 import {
-  Activity,
-  CalendarDays,
-  Clock3,
-  Coins,
-  Flame,
+  Clock,
+  Target,
+  BookOpen,
+  TrendingUp,
+  Award,
+  Calendar,
+  CheckCircle,
+  BarChart3,
   Sparkles,
-  Timer,
-  Trophy,
-} from "lucide-react";
-import { Button, Card, PageContainer, SkeletonCard } from "@/components";
-import { useAppStore } from "@/store";
-import { formatStudyHours } from "./dashboardMetrics";
-import { useDashboardMetrics } from "./useDashboardMetrics";
-
-type TaskSummary = {
-  id: string;
-  title: string;
-  completed?: boolean;
-  dueDate?: string | null;
-  frequency?: string;
-};
-
-type NoteSummary = {
-  id: string;
-  title: string;
-  updatedAt?: string;
-};
-
-type EventSummary = {
-  id: string;
-  title: string;
-  start: string;
-};
-
-function readLocalStorageJSON<T>(key: string): T | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
+  Zap,
+  Flame,
+  Star,
+  Rocket,
+  Activity,
+  Crown,
+  Gem,
+  Coins,
+} from 'lucide-react';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { GradientText } from '@/components/ui/GradientText';
+import { cn } from '@/lib/utils';
 
 export function Dashboard() {
-  const { metrics, isLoading, error } = useDashboardMetrics();
-  const weeklyGoalSeconds = 12 * 60 * 60;
-  const weeklyGoalPercent = Math.min(
-    100,
-    Math.round((metrics.weekSeconds / weeklyGoalSeconds) * 100),
-  );
-
-  const navigate = useNavigate();
-  const user = useAppStore((state) => state.user);
-  const [localTasks, setLocalTasks] = useState<TaskSummary[]>([]);
-  const [localNotes, setLocalNotes] = useState<NoteSummary[]>([]);
-  const [localEvents, setLocalEvents] = useState<EventSummary[]>([]);
-
-  const todayDate = new Date().toISOString().slice(0, 10);
-  const todayTasks = localTasks.filter(
-    (task) => !task.completed && (!task.dueDate || task.dueDate === todayDate),
-  );
-  const recentNotes = localNotes
-    .slice()
-    .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""))
-    .slice(0, 4);
-  const upcomingEvents = localEvents
-    .slice()
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-    .slice(0, 4);
-
   const stats = [
     {
-      label: "Today’s study",
-      value: formatStudyHours(metrics.todaySeconds),
-      detail: "Live session total",
-      icon: Clock3,
-      accent: "#7c6af7",
-      badge: "Live",
+      label: "Today's Study",
+      value: '3.5h',
+      icon: Clock,
+      color: 'primary',
+      glow: 'rgba(139, 92, 246, 0.4)',
+      subtext: '2 sessions completed',
     },
     {
-      label: "Weekly hours",
-      value: formatStudyHours(metrics.weekSeconds),
-      detail: "Monday through today",
-      icon: CalendarDays,
-      accent: "#38bdf8",
-      badge: "Weekly",
+      label: 'Weekly Hours',
+      value: '12h',
+      icon: TrendingUp,
+      color: 'accent',
+      glow: 'rgba(245, 158, 11, 0.4)',
+      subtext: '? 15% from last week',
     },
     {
-      label: "Monthly hours",
-      value: formatStudyHours(metrics.monthSeconds),
-      detail: "This calendar month",
-      icon: Timer,
-      accent: "#22d3a0",
-      badge: "Monthly",
+      label: 'Monthly Hours',
+      value: '48h',
+      icon: Calendar,
+      color: 'pink',
+      glow: 'rgba(236, 72, 153, 0.4)',
+      subtext: 'On track for 60h',
     },
     {
-      label: "Total XP",
-      value: metrics.xp.toLocaleString(),
-      detail: "Synced from your profile",
-      icon: Sparkles,
-      accent: "#a78bfa",
-      badge: "XP",
+      label: 'Total XP',
+      value: '2,450',
+      icon: Award,
+      color: 'cyan',
+      glow: 'rgba(6, 182, 212, 0.4)',
+      subtext: 'Level 7 � 350 to next',
     },
     {
-      label: "Coins",
-      value: metrics.coins.toLocaleString(),
-      detail: "Synced from your profile",
+      label: 'Coins',
+      value: '1,280',
       icon: Coins,
-      accent: "#f59e0b",
-      badge: "Wallet",
+      color: 'emerald',
+      glow: 'rgba(16, 185, 129, 0.4)',
+      subtext: '+50 today',
     },
     {
-      label: "Study streak",
-      value: `${metrics.streakDays} days`,
-      detail: "Consecutive days studied",
+      label: 'Study Streak',
+      value: '12 days',
       icon: Flame,
-      accent: "#fb7185",
-      badge: "Streak",
+      color: 'rose',
+      glow: 'rgba(244, 63, 94, 0.4)',
+      subtext: '?? Keep going!',
     },
   ];
 
-  const timelineItems = [
+  const recentActivity = [
     {
-      title: "Completed deep focus session",
-      time: "2h ago",
-      description: "Finished a 90-minute uninterrupted study block.",
-      icon: Activity,
-      accent: "#38bdf8",
+      title: 'Completed Deep Focus Session',
+      time: '2 hours ago',
+      description: 'Finished a 90-minute uninterrupted study block',
+      icon: Zap,
+      color: 'primary',
     },
     {
-      title: "Streak extended",
-      time: "Yesterday",
-      description: "You kept your learning streak alive for another day.",
+      title: 'Streak Extended',
+      time: 'Yesterday',
+      description: 'You kept your learning streak alive for another day',
       icon: Flame,
-      accent: "#fb7185",
+      color: 'rose',
     },
     {
-      title: "Reached weekly high",
-      time: "3d ago",
-      description: "Your weekly total hours hit a new personal best.",
-      icon: Trophy,
-      accent: "#a78bfa",
+      title: 'Reached Weekly High',
+      time: '3 days ago',
+      description: 'Your weekly total hours hit a new personal best',
+      icon: Rocket,
+      color: 'accent',
     },
   ];
-
-  useEffect(() => {
-    const tasksData = readLocalStorageJSON<unknown>("studyos_tasks_v1");
-    const notesData = readLocalStorageJSON<unknown>("studyos_notes_v1");
-    const eventsData = readLocalStorageJSON<unknown>("studyos_calendar_v1");
-
-    const tasks = Array.isArray(tasksData) ? tasksData : [];
-    const notes = Array.isArray(notesData) ? notesData : [];
-    const events = Array.isArray(eventsData) ? eventsData : [];
-
-    setLocalTasks(tasks.slice(0, 5) as TaskSummary[]);
-    setLocalNotes(notes.slice(0, 3) as NoteSummary[]);
-    setLocalEvents(events.slice(0, 4) as EventSummary[]);
-  }, []);
 
   return (
-    <PageContainer className="space-y-8 pb-10">
-      <section className="rounded-[24px] border border-white/10 bg-[rgba(255,255,255,0.06)] p-6 shadow-[0_26px_70px_rgba(7,11,29,0.18)] backdrop-blur-[20px] transition-all duration-250">
-        <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm font-semibold text-[var(--color-accent-hover)]">
-              <Sparkles size={16} />
-              Your learning space
-            </span>
-            <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-[var(--color-text-primary)] sm:text-5xl">
-              Welcome {user?.name ?? "Student"} 👋
-            </h1>
-            <p className="mt-4 max-w-3xl text-base text-[rgba(255,255,255,0.68)] sm:text-lg">
-              Good morning — everything you need to stay in flow is laid out
-              clearly across tasks, notes, and study goals.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            <Button
-              variant="primary"
-              className="w-full"
-              onClick={() => navigate("/tasks")}
-            >
-              New Task
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={() => navigate("/focus")}
-            >
-              Study Timer
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950/20 p-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Animated Background Glow */}
+        <div className="fixed inset-0 -z-10 overflow-hidden">
+          <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-primary-500/20 blur-3xl" />
+          <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500/10 blur-3xl" />
         </div>
-      </section>
 
-      {error && (
-        <p className="rounded-2xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--color-danger)]">
-          {error}
-        </p>
-      )}
-
-      {isLoading ? (
-        <div className="space-y-5">
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <SkeletonCard key={index} className="h-40" />
-            ))}
-          </div>
-
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(290px,0.85fr)]">
-            <SkeletonCard className="h-[320px]" />
-            <SkeletonCard className="h-[320px]" />
-          </div>
-
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-            <SkeletonCard className="h-44" />
-            <SkeletonCard className="h-44" />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <SkeletonCard key={index} className="h-44" />
-            ))}
-          </div>
-
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <SkeletonCard key={index} className="h-28" />
-            ))}
-          </div>
-        </div>
-      ) : (
-        <>
-          <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {stats.map(
-              ({ label, value, detail, icon: Icon, accent, badge }) => (
-                <Card
-                  key={label}
-                  hover
-                  className="relative overflow-hidden border-white/10 bg-white/5 shadow-[0_28px_80px_rgba(7,11,29,0.18)] transition duration-250 hover:-translate-y-1 hover:scale-[1.01]"
-                  padding="md"
-                >
-                  <div
-                    className="absolute inset-0 opacity-0 transition-opacity duration-250 hover:opacity-100"
-                    style={{
-                      background: `radial-gradient(circle at top right, ${accent}, transparent 60%)`,
-                    }}
-                  />
-                  <div className="relative flex items-start justify-between gap-4">
-                    <div>
-                      <div
-                        className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
-                        style={{
-                          border: `1px solid ${accent}`,
-                          background: "rgba(255,255,255,0.08)",
-                          color: accent,
-                          boxShadow: `0 0 16px ${accent}33, 0 0 24px ${accent}1a`,
-                          backdropFilter: "blur(12px)",
-                        }}
-                      >
-                        {badge}
-                      </div>
-                      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                        {label}
-                      </p>
-                      <p className="mt-3 text-3xl font-extrabold text-[var(--color-text-primary)]">
-                        {value}
-                      </p>
-                      <p className="mt-3 text-sm text-[rgba(255,255,255,0.65)]">
-                        {detail}
-                      </p>
-                    </div>
-                    <div
-                      className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
-                      style={{ color: accent }}
-                    >
-                      <Icon size={20} />
-                    </div>
-                  </div>
-                </Card>
-              ),
-            )}
-          </section>
-
-          <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {stats
-              .slice(0, 4)
-              .map(({ label, value, detail, icon: Icon, accent, badge }) => (
-                <Card
-                  key={label}
-                  hover
-                  className="relative overflow-hidden border-white/10 bg-white/5 shadow-[0_28px_80px_rgba(7,11,29,0.18)] transition duration-250 hover:-translate-y-1 hover:scale-[1.01]"
-                  padding="md"
-                >
-                  <div
-                    className="absolute inset-0 opacity-0 transition-opacity duration-250 hover:opacity-100"
-                    style={{
-                      background: `radial-gradient(circle at top right, ${accent}, transparent 60%)`,
-                    }}
-                  />
-                  <div className="relative flex items-start justify-between gap-4">
-                    <div>
-                      <div
-                        className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
-                        style={{
-                          border: `1px solid ${accent}`,
-                          background: "rgba(255,255,255,0.08)",
-                          color: accent,
-                          boxShadow: `0 0 16px ${accent}33, 0 0 24px ${accent}1a`,
-                          backdropFilter: "blur(12px)",
-                        }}
-                      >
-                        {badge}
-                      </div>
-                      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                        {label}
-                      </p>
-                      <p className="mt-3 text-3xl font-extrabold text-[var(--color-text-primary)]">
-                        {value}
-                      </p>
-                      <p className="mt-3 text-sm text-[rgba(255,255,255,0.65)]">
-                        {detail}
-                      </p>
-                    </div>
-                    <div
-                      className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
-                      style={{ color: accent }}
-                    >
-                      <Icon size={20} />
-                    </div>
-                  </div>
-                </Card>
-              ))}
-          </section>
-
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-            <Card padding="lg" className="space-y-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                    Today’s Tasks
-                  </p>
-                  <p className="mt-1 text-sm text-[rgba(255,255,255,0.72)]">
-                    Open tasks and priorities for today.
-                  </p>
-                </div>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
-                  {todayTasks.length} tasks
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {todayTasks.length > 0 ? (
-                  todayTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex items-center justify-between rounded-[18px] border border-white/10 bg-white/5 p-4"
-                    >
-                      <div>
-                        <p className="font-semibold text-[var(--color-text-primary)]">
-                          {task.title}
-                        </p>
-                        <p className="text-sm text-[rgba(255,255,255,0.65)]">
-                          {task.frequency || "One-off"} •{" "}
-                          {task.dueDate || "No due date"}
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-[rgba(59,130,246,0.12)] px-3 py-1 text-xs font-semibold text-[var(--color-success)]">
-                        {task.completed ? "Done" : "Pending"}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="rounded-[18px] border border-white/10 bg-white/5 p-6 text-sm text-[rgba(255,255,255,0.7)]">
-                    No tasks scheduled for today. Create a fresh task to keep
-                    your day on track.
-                  </p>
-                )}
-              </div>
-            </Card>
-
-            <Card padding="lg" className="space-y-6">
-              <div>
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                  Study Timer
-                </p>
-                <p className="mt-1 text-sm text-[rgba(255,255,255,0.72)]">
-                  Start a focused study session and build momentum.
-                </p>
-              </div>
-              <div className="rounded-[24px] bg-gradient-to-br from-[rgba(59,130,246,0.14)] to-[rgba(59,130,246,0.04)] p-6 text-center">
-                <p className="text-sm uppercase tracking-[0.24em] text-[rgba(255,255,255,0.65)]">
-                  Next session
-                </p>
-                <p className="mt-4 text-5xl font-extrabold text-[var(--color-text-primary)]">
-                  25:00
-                </p>
-                <p className="mt-3 text-sm text-[rgba(255,255,255,0.72)]">
-                  Ready to begin your next focus interval.
-                </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <Button variant="primary" onClick={() => navigate("/focus")}>
-                    Start
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => navigate("/focus")}
-                  >
-                    Resume
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </section>
-
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-            <Card padding="lg" className="space-y-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                    Recent Notes
-                  </p>
-                  <p className="mt-1 text-sm text-[rgba(255,255,255,0.72)]">
-                    Quick access to the latest notes you captured.
-                  </p>
-                </div>
-                <Button variant="ghost" onClick={() => navigate("/notes")}>
-                  View all
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {recentNotes.length > 0 ? (
-                  recentNotes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="rounded-[18px] border border-white/10 bg-white/5 p-4"
-                    >
-                      <p className="font-semibold text-[var(--color-text-primary)]">
-                        {note.title || "Untitled note"}
-                      </p>
-                      <p className="mt-2 text-sm text-[rgba(255,255,255,0.65)]">
-                        Updated {note.updatedAt?.slice(0, 10) || "recently"}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="rounded-[18px] border border-white/10 bg-white/5 p-6 text-sm text-[rgba(255,255,255,0.7)]">
-                    No recent notes yet. Capture your ideas and review them
-                    here.
-                  </p>
-                )}
-              </div>
-            </Card>
-
-            <Card padding="lg" className="space-y-6">
-              <div>
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                  Calendar
-                </p>
-                <p className="mt-1 text-sm text-[rgba(255,255,255,0.72)]">
-                  Upcoming events and scheduled study plans.
-                </p>
-              </div>
-              <div className="space-y-3">
-                {upcomingEvents.length > 0 ? (
-                  upcomingEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className="rounded-[18px] border border-white/10 bg-white/5 p-4"
-                    >
-                      <p className="font-semibold text-[var(--color-text-primary)]">
-                        {event.title}
-                      </p>
-                      <p className="mt-2 text-sm text-[rgba(255,255,255,0.65)]">
-                        {new Date(event.start).toLocaleString()}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="rounded-[18px] border border-white/10 bg-white/5 p-6 text-sm text-[rgba(255,255,255,0.7)]">
-                    Your calendar is empty. Add events to stay on schedule.
-                  </p>
-                )}
-              </div>
-            </Card>
-          </section>
-
-          <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
-            <Card padding="lg" className="space-y-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                    Progress
-                  </p>
-                  <p className="mt-1 text-sm text-[rgba(255,255,255,0.72)]">
-                    How far you’ve come this week.
-                  </p>
-                </div>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
-                  {weeklyGoalPercent}% complete
-                </span>
-              </div>
-              <div className="space-y-4">
-                <div className="rounded-[18px] bg-white/5 p-4">
-                  <p className="text-sm text-[rgba(255,255,255,0.72)]">
-                    Study hours
-                  </p>
-                  <p className="mt-2 text-3xl font-extrabold text-[var(--color-text-primary)]">
-                    {formatStudyHours(metrics.weekSeconds)}
-                  </p>
-                </div>
-                <div className="rounded-[18px] bg-white/5 p-4">
-                  <p className="text-sm text-[rgba(255,255,255,0.72)]">
-                    XP earned
-                  </p>
-                  <p className="mt-2 text-3xl font-extrabold text-[var(--color-text-primary)]">
-                    {metrics.xp}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card padding="lg" className="space-y-6">
-              <div>
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                  Activity
-                </p>
-                <p className="mt-1 text-sm text-[rgba(255,255,255,0.72)]">
-                  Timeline of your latest study wins.
-                </p>
-              </div>
-              <div className="space-y-4">
-                {timelineItems.map(
-                  ({ title, time, description, icon: Icon, accent }) => (
-                    <div
-                      key={title}
-                      className="rounded-[18px] border border-white/10 bg-white/5 p-4"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-semibold text-[var(--color-text-primary)]">
-                            {title}
-                          </p>
-                          <p className="mt-2 text-sm text-[rgba(255,255,255,0.65)]">
-                            {description}
-                          </p>
-                        </div>
-                        <span
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-[16px] bg-white/10"
-                          style={{ color: accent }}
-                        >
-                          <Icon size={18} />
-                        </span>
-                      </div>
-                      <p className="mt-3 text-xs uppercase tracking-[0.18em] text-[rgba(255,255,255,0.55)]">
-                        {time}
-                      </p>
-                    </div>
-                  ),
-                )}
-              </div>
-            </Card>
-          </section>
-
-          <section className="space-y-5">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                Recent activity
-              </p>
-              <p className="mt-1 text-sm text-[rgba(255,255,255,0.72)]">
-                A quick timeline of your latest study updates.
+              <h1 className="text-5xl font-bold">
+                <span className="shimmer-text">Dashboard</span>
+              </h1>
+              <p className="mt-2 text-xl text-gray-400">
+                Stay focused and track your progress in one place
               </p>
             </div>
-            <div className="relative border-l border-white/10 pl-6">
-              {timelineItems.map(
-                ({ title, time, description, icon: Icon, accent }) => (
-                  <div key={title} className="group relative mb-8 last:mb-0">
-                    <span
-                      className="absolute -left-[10px] top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#0b1224] ring-1 ring-white/10"
-                      style={{ color: accent }}
-                    >
-                      <Icon size={16} />
-                    </span>
-                    <div className="rounded-[20px] border border-white/10 bg-white/5 p-5 shadow-[0_18px_40px_rgba(0,0,0,0.12)] transition duration-250 group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(59,130,246,0.15)]">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                          {title}
-                        </p>
-                        <span className="text-xs uppercase tracking-[0.16em] text-[rgba(255,255,255,0.55)]">
-                          {time}
-                        </span>
-                      </div>
-                      <p className="mt-3 text-sm text-[rgba(255,255,255,0.72)]">
-                        {description}
-                      </p>
-                    </div>
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-primary-500/20 px-4 py-2 text-sm text-primary-300 backdrop-blur-sm">
+                ?? Today's Goal: 4h
+              </div>
+              <div className="rounded-full bg-accent-500/20 px-4 py-2 text-sm text-accent-300 backdrop-blur-sm">
+                ? 85% Focus Score
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Stats Grid with Glowing Cards */}
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              className="relative"
+            >
+              <div
+                className="absolute -inset-0.5 rounded-2xl blur-xl opacity-50"
+                style={{
+                  background: `radial-gradient(circle at center, ${stat.glow}, transparent 70%)`,
+                  animation: 'glow-pulse 3s ease-in-out infinite',
+                }}
+              />
+              <GlassCard className="relative overflow-hidden p-6 transition-all hover:scale-[1.02]">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">{stat.label}</p>
+                    <p className="mt-2 text-3xl font-bold text-white">{stat.value}</p>
+                    <p className="mt-1 text-xs text-gray-500">{stat.subtext}</p>
                   </div>
-                ),
-              )}
-            </div>
-          </section>
-        </>
-      )}
-    </PageContainer>
+                  <div
+                    className="rounded-xl p-3"
+                    style={{
+                      background: `rgba(${stat.color === 'primary' ? '139, 92, 246' : stat.color === 'accent' ? '245, 158, 11' : stat.color === 'pink' ? '236, 72, 153' : stat.color === 'cyan' ? '6, 182, 212' : stat.color === 'emerald' ? '16, 185, 129' : '244, 63, 94'}, 0.15)`,
+                    }}
+                  >
+                    <stat.icon
+                      className="h-6 w-6"
+                      style={{
+                        color:
+                          stat.color === 'primary'
+                            ? '#8b5cf6'
+                            : stat.color === 'accent'
+                            ? '#f59e0b'
+                            : stat.color === 'pink'
+                            ? '#ec4899'
+                            : stat.color === 'cyan'
+                            ? '#06b6d4'
+                            : stat.color === 'emerald'
+                            ? '#10b981'
+                            : '#f43f5e',
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="absolute bottom-0 left-0 h-0.5 w-full bg-gradient-to-r from-transparent via-primary-500 to-transparent opacity-50" />
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Study Progress */}
+          <div className="lg:col-span-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="relative"
+            >
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary-500/30 via-accent-500/30 to-pink-500/30 blur-xl" />
+              <GlassCard className="relative p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Today's Progress</h2>
+                    <p className="text-sm text-gray-400">How far you've come this week</p>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full bg-primary-500/20 px-3 py-1">
+                    <Sparkles className="h-4 w-4 text-primary-400" />
+                    <span className="text-sm text-primary-300">75% Complete</span>
+                  </div>
+                </div>
+
+                {/* Subjects Progress */}
+                <div className="space-y-4">
+                  {[
+                    { subject: 'Mathematics', progress: 75, hours: 2.5, color: 'primary' },
+                    { subject: 'Physics', progress: 45, hours: 1.5, color: 'accent' },
+                    { subject: 'Chemistry', progress: 30, hours: 1, color: 'pink' },
+                    { subject: 'Biology', progress: 60, hours: 1.5, color: 'emerald' },
+                  ].map((subject, index) => (
+                    <motion.div
+                      key={subject.subject}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="group relative rounded-xl bg-white/5 p-4 hover:bg-white/10 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{
+                              background: `var(--color-${subject.color}-500)`,
+                              boxShadow: `0 0 20px var(--color-${subject.color}-500)`,
+                            }}
+                          />
+                          <span className="text-lg font-semibold text-white">{subject.subject}</span>
+                          <span className="text-sm text-gray-400">{subject.hours}h</span>
+                        </div>
+                        <span className="text-lg font-bold text-white">{subject.progress}%</span>
+                      </div>
+                      <div className="h-3 w-full overflow-hidden rounded-full bg-gray-800/50">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${subject.progress}%` }}
+                          transition={{ duration: 1.5, ease: 'easeOut' }}
+                          className="h-full rounded-full"
+                          style={{
+                            background: `linear-gradient(90deg, var(--color-${subject.color}-500), var(--color-${subject.color}-400))`,
+                            boxShadow: `0 0 30px var(--color-${subject.color}-500)`,
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="lg:col-span-1">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="relative"
+            >
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary-500/20 via-accent-500/20 to-pink-500/20 blur-xl" />
+              <GlassCard className="relative p-6">
+                <h2 className="mb-6 text-2xl font-bold text-white">Recent Activity</h2>
+                <div className="space-y-4">
+                  {recentActivity.map((activity, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="group relative rounded-xl bg-white/5 p-4 transition-all hover:bg-white/10"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="rounded-lg p-2"
+                          style={{
+                            background: `rgba(var(--glow-${activity.color}), 0.15)`,
+                          }}
+                        >
+                          <activity.icon
+                            className="h-5 w-5"
+                            style={{
+                              color: `var(--color-${activity.color}-500)`,
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-white">{activity.title}</h3>
+                          <p className="text-sm text-gray-400">{activity.description}</p>
+                          <p className="mt-1 text-xs text-gray-500">{activity.time}</p>
+                        </div>
+                      </div>
+                      <div className="absolute right-3 top-3 h-2 w-2 rounded-full bg-primary-500/50">
+                        <div className="absolute inset-0 h-2 w-2 animate-ping rounded-full bg-primary-500/30" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

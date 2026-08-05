@@ -1,40 +1,38 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${s}s`;
-  return `${s}s`;
+export function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
 
-export function formatHours(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h > 0 && m > 0) return `${h}h ${m}m`;
-  if (h > 0) return `${h}h`;
-  return `${m}m`;
+export function formatTime(hours: number): string {
+  if (hours < 1) {
+    return `${Math.round(hours * 60)}m`;
+  }
+  return `${Math.floor(hours)}h ${Math.round((hours % 1) * 60)}m`;
 }
 
 export function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 17) return 'Good Afternoon';
-  if (hour < 21) return 'Good Evening';
-  return 'Good Night';
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  if (hour < 21) return "Good Evening";
+  return "Good Night";
 }
 
 export function getProgressColor(percent: number): string {
-  if (percent >= 80) return '#22d3a0';
-  if (percent >= 50) return '#7c6af7';
-  if (percent >= 25) return '#f59e0b';
-  return '#ef4444';
+  if (percent >= 80) return "#22d3a0";
+  if (percent >= 50) return "#7c6af7";
+  if (percent >= 25) return "#f59e0b";
+  return "#ef4444";
 }
 
 export function generateId(): string {
@@ -42,14 +40,17 @@ export function generateId(): string {
 }
 
 export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   }).format(new Date(date));
 }
 
 export function formatTime(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    hour: '2-digit', minute: '2-digit',
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(date));
 }
 
@@ -77,7 +78,9 @@ export const MOTIVATIONAL_QUOTES = [
 ];
 
 export function getRandomQuote(): string {
-  return MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
+  return MOTIVATIONAL_QUOTES[
+    Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)
+  ];
 }
 
 export function calculateXPForLevel(level: number): number {
@@ -90,9 +93,19 @@ export function getLevelFromXP(xp: number): number {
   return level;
 }
 
-export function getXPProgress(xp: number): { level: number; current: number; required: number; percent: number } {
+export function getXPProgress(xp: number): {
+  level: number;
+  current: number;
+  required: number;
+  percent: number;
+} {
   const level = getLevelFromXP(xp);
   const current = xp - calculateXPForLevel(level);
   const required = calculateXPForLevel(level + 1) - calculateXPForLevel(level);
-  return { level, current, required, percent: Math.round((current / required) * 100) };
+  return {
+    level,
+    current,
+    required,
+    percent: Math.round((current / required) * 100),
+  };
 }

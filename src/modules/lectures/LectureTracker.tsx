@@ -1,435 +1,274 @@
-import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Input, Textarea } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
-import { CircularProgress } from "@/components/ui/Progress";
-import { EmptyState } from "@/components/ui";
-import { Plus, Check, Star, Bookmark, Clock, Trash, Edit } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Plus,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  Star,
+  Bell,
+  MoreVertical,
+  Grid3x3,
+  List,
+} from 'lucide-react';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { GradientText } from '@/components/ui/GradientText';
+import { cn } from '@/utils';
 
-type LectureStatus = "pending" | "completed" | "skipped";
-
-type Lecture = {
-  id: string;
-  title: string;
-  status: LectureStatus;
-  bookmarked?: boolean;
-  notes?: string;
-  reminder?: string | null; // ISO string
-};
-
-type Chapter = {
+interface Chapter {
   id: string;
   name: string;
   lectures: Lecture[];
-};
+  progress: number;
+}
 
-const STORAGE_KEY = "studyos_lecture_tracker_v1";
-
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
+interface Lecture {
+  id: string;
+  title: string;
+  status: 'completed' | 'pending' | 'in-progress';
+  bookmarked: boolean;
+  notes: string;
+  reminder?: Date;
 }
 
 export function LectureTracker() {
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [newChapterName, setNewChapterName] = useState("");
-  const [activeNotes, setActiveNotes] = useState<{
-    lectureId: string;
-    chapterId: string;
-  } | null>(null);
-  const [notesValue, setNotesValue] = useState("");
-  const [reminderEditing, setReminderEditing] = useState<{
-    lectureId: string;
-    chapterId: string;
-  } | null>(null);
+  const [chapters, setChapters] = useState<Chapter[]>([
+    {
+      id: '1',
+      name: 'Mathematics',
+      progress: 65,
+      lectures: [
+        {
+          id: '1',
+          title: 'Chapter 1: Algebra Basics',
+          status: 'completed',
+          bookmarked: true,
+          notes: 'Great chapter!',
+        },
+        {
+          id: '2',
+          title: 'Chapter 2: Quadratic Equations',
+          status: 'in-progress',
+          bookmarked: false,
+          notes: '',
+        },
+      ],
+    },
+    {
+      id: '2',
+      name: 'Physics',
+      progress: 30,
+      lectures: [
+        {
+          id: '3',
+          title: 'Chapter 1: Motion',
+          status: 'pending',
+          bookmarked: false,
+          notes: '',
+        },
+      ],
+    },
+  ]);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setChapters(JSON.parse(raw));
-    } catch (e) {
-      // ignore
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(chapters));
-    } catch (e) {}
-  }, [chapters]);
+  const [newChapterName, setNewChapterName] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const addChapter = () => {
     if (!newChapterName.trim()) return;
-    setChapters((s) => [
-      ...s,
-      { id: uid("chap_"), name: newChapterName.trim(), lectures: [] },
+
+    setChapters((current) => [
+      ...current,
+      {
+        id: Date.now().toString(),
+        name: newChapterName.trim(),
+        progress: 0,
+        lectures: [],
+      },
     ]);
-    setNewChapterName("");
+
+    setNewChapterName('');
   };
 
-  const addLecture = (chapterId: string, title: string) => {
-    if (!title.trim()) return;
-    setChapters((s) =>
-      s.map((c) =>
-        c.id === chapterId
-          ? {
-              ...c,
-              lectures: [
-                ...c.lectures,
-                { id: uid("lec_"), title: title.trim(), status: "pending" },
-              ],
-            }
-          : c,
-      ),
-    );
+  const getStatusColor = (status: Lecture['status']) => {
+    switch (status) {
+      case 'completed':
+        return 'text-success bg-success/10';
+      case 'in-progress':
+        return 'text-warning bg-warning/10';
+      default:
+        return 'text-gray-400 bg-gray-100 dark:bg-gray-800';
+    }
   };
 
-  const updateLecture = (
-    chapterId: string,
-    lectureId: string,
-    patch: Partial<Lecture>,
-  ) => {
-    setChapters((s) =>
-      s.map((c) =>
-        c.id === chapterId
-          ? {
-              ...c,
-              lectures: c.lectures.map((l) =>
-                l.id === lectureId ? { ...l, ...patch } : l,
-              ),
-            }
-          : c,
-      ),
-    );
+  const getStatusIcon = (status: Lecture['status']) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'in-progress':
+        return <Clock className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
   };
-
-  const removeLecture = (chapterId: string, lectureId: string) => {
-    setChapters((s) =>
-      s.map((c) =>
-        c.id === chapterId
-          ? { ...c, lectures: c.lectures.filter((l) => l.id !== lectureId) }
-          : c,
-      ),
-    );
-  };
-
-  const completeOneClick = (chapterId: string, lectureId: string) => {
-    updateLecture(chapterId, lectureId, { status: "completed" });
-  };
-
-  const totalsByChapter = useMemo(() => {
-    return chapters.map((c) => {
-      const total = c.lectures.length;
-      const completed = c.lectures.filter(
-        (l) => l.status === "completed",
-      ).length;
-      const bookmarked = c.lectures.filter((l) => l.bookmarked).length;
-      return {
-        chapterId: c.id,
-        total,
-        completed,
-        bookmarked,
-        percent: total ? Math.round((completed / total) * 100) : 0,
-      };
-    });
-  }, [chapters]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Input
-          placeholder="New chapter name (e.g. CHAPTER 1)"
-          value={newChapterName}
-          onChange={(e) => setNewChapterName(e.target.value)}
-        />
-        <Button variant="primary" onClick={addChapter}>
-          <Plus size={14} /> Add Chapter
-        </Button>
-      </div>
-
-      <div className="grid gap-4">
-        {chapters.length === 0 && (
-          <Card padding="lg" className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 p-8">
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Lecture Tracker</h3>
-              <p className="text-sm text-[var(--color-text-muted)]">
-                Create chapters and add lectures. Track progress, notes,
-                reminders and bookmarks.
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+                <GradientText from="from-primary-500" to="to-accent-500">
+                  Lecture Tracker
+                </GradientText>
+              </h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                Track your lectures, chapters, and progress.
               </p>
             </div>
-            <div>
-              <CircularProgress value={0} size={80} strokeWidth={8}>
-                <div className="text-sm text-[var(--color-text-muted)]">0%</div>
-              </CircularProgress>
-            </div>
-          </Card>
-        )}
-
-        <AnimatePresence>
-          {chapters.map((chapter) => {
-            const stats = totalsByChapter.find(
-              (t) => t.chapterId === chapter.id,
-            ) || { percent: 0, total: 0, completed: 0 };
-            return (
-              <motion.div
-                key={chapter.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <Card padding="lg" className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold">{chapter.name}</h3>
-                      <p className="text-xs text-[var(--color-text-muted)]">
-                        {stats.completed}/{stats.total} lectures completed
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-28">
-                        <CircularProgress
-                          value={stats.percent}
-                          size={64}
-                          strokeWidth={6}
-                        >
-                          <div className="text-xs text-[var(--color-text-muted)]">
-                            {stats.percent}%
-                          </div>
-                        </CircularProgress>
-                      </div>
-                    </div>
-                  </div>
-
-                  <ChapterLectures
-                    chapter={chapter}
-                    onAddLecture={(title) => addLecture(chapter.id, title)}
-                    onToggleBookmark={(lectureId, next) =>
-                      updateLecture(chapter.id, lectureId, { bookmarked: next })
-                    }
-                    onSetStatus={(lectureId, status) =>
-                      updateLecture(chapter.id, lectureId, { status })
-                    }
-                    onRemoveLecture={(lectureId) =>
-                      removeLecture(chapter.id, lectureId)
-                    }
-                    onOpenNotes={(lectureId) => {
-                      setActiveNotes({ lectureId, chapterId: chapter.id });
-                      const l = chapter.lectures.find(
-                        (x) => x.id === lectureId,
-                      );
-                      setNotesValue(l?.notes || "");
-                    }}
-                    onSaveNotes={(lectureId, notes) =>
-                      updateLecture(chapter.id, lectureId, { notes })
-                    }
-                    onOpenReminder={(lectureId) =>
-                      setReminderEditing({ lectureId, chapterId: chapter.id })
-                    }
-                    onComplete={(lectureId) =>
-                      completeOneClick(chapter.id, lectureId)
-                    }
-                  />
-                </Card>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-
-      <Modal
-        open={!!activeNotes}
-        onClose={() => setActiveNotes(null)}
-        title="Lecture Notes"
-      >
-        <Textarea
-          value={notesValue}
-          onChange={(e) => setNotesValue(e.target.value)}
-        />
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="secondary" onClick={() => setActiveNotes(null)}>
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              if (activeNotes) {
-                updateLecture(activeNotes.chapterId, activeNotes.lectureId, {
-                  notes: notesValue,
-                });
-              }
-              setActiveNotes(null);
-            }}
-          >
-            Save Notes
-          </Button>
-        </div>
-      </Modal>
-
-      <Modal
-        open={!!reminderEditing}
-        onClose={() => setReminderEditing(null)}
-        title="Set Reminder"
-      >
-        <div className="flex flex-col gap-3">
-          <Input
-            type="datetime-local"
-            value={
-              reminderEditing
-                ? (chapters
-                    .find((c) => c.id === reminderEditing.chapterId)
-                    ?.lectures.find((l) => l.id === reminderEditing.lectureId)
-                    ?.reminder ?? "")
-                : ""
-            }
-            onChange={(e) => {
-              if (!reminderEditing) return;
-              updateLecture(
-                reminderEditing.chapterId,
-                reminderEditing.lectureId,
-                { reminder: e.target.value || null },
-              );
-            }}
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setReminderEditing(null)}
-            >
-              Close
-            </Button>
-            <Button variant="primary" onClick={() => setReminderEditing(null)}>
-              Save
-            </Button>
-          </div>
-        </div>
-      </Modal>
-    </div>
-  );
-}
-
-function ChapterLectures({
-  chapter,
-  onAddLecture,
-  onToggleBookmark,
-  onSetStatus,
-  onRemoveLecture,
-  onOpenNotes,
-  onOpenReminder,
-  onComplete,
-}: any) {
-  const [title, setTitle] = useState("");
-
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <Input
-          placeholder="Lecture title (e.g. Lecture 1)"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <Button
-          onClick={() => {
-            onAddLecture(title);
-            setTitle("");
-          }}
-        >
-          <Plus size={14} /> Add
-        </Button>
-      </div>
-
-      <div className="space-y-2">
-        {chapter.lectures.length === 0 && (
-          <div className="py-4">
-            <EmptyState
-              title="No lectures yet"
-              description="Create your first lecture to get started"
-              primaryLabel="Add Lecture"
-              onPrimary={() => onAddLecture("New Lecture")}
-            />
-          </div>
-        )}
-        {chapter.lectures.map((lec: Lecture) => (
-          <div
-            key={lec.id}
-            className="flex items-center justify-between glass rounded-xl p-3"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium">{lec.title}</h4>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded ${lec.status === "completed" ? "bg-[var(--color-success)]/20 text-[var(--color-success)]" : lec.status === "skipped" ? "bg-[var(--color-danger)]/20 text-[var(--color-danger)]" : "bg-white/5 text-[var(--color-text-muted)]"}`}
-                  >
-                    {lec.status}
-                  </span>
-                  {lec.bookmarked && (
-                    <Bookmark
-                      size={14}
-                      className="text-[var(--color-accent)]"
-                    />
-                  )}
-                </div>
-                <div className="text-xs text-[var(--color-text-muted)]">
-                  {lec.notes ? "Notes saved" : "No notes"}
-                  {lec.reminder
-                    ? ` • Reminder: ${new Date(lec.reminder).toLocaleString()}`
-                    : ""}
-                </div>
-              </div>
-            </div>
             <div className="flex items-center gap-2">
-              <Button
-                size="icon"
-                variant="success"
-                onClick={() => onComplete(lec.id)}
-                title="Mark complete"
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`rounded-xl p-2 transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-primary-500/20 text-primary-500'
+                    : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
               >
-                <Check size={14} />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => onToggleBookmark(lec.id, !lec.bookmarked)}
-                title="Toggle bookmark"
+                <Grid3x3 className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`rounded-xl p-2 transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-primary-500/20 text-primary-500'
+                    : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
               >
-                {lec.bookmarked ? <Star size={14} /> : <Star size={14} />}
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => onOpenNotes(lec.id)}
-                title="Notes"
-              >
-                <Edit size={14} />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => onOpenReminder(lec.id)}
-                title="Reminder"
-              >
-                <Clock size={14} />
-              </Button>
-              <Button
-                size="icon"
-                variant="danger"
-                onClick={() => onSetStatus(lec.id, "skipped")}
-                title="Mark skipped"
-              >
-                <Trash size={14} />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => onRemoveLecture(lec.id)}
-                title="Delete"
-              >
-                <Trash size={14} />
-              </Button>
+                <List className="h-5 w-5" />
+              </button>
             </div>
           </div>
-        ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <GlassCard className="p-6">
+            <div className="flex flex-col gap-3 md:flex-row">
+              <input
+                type="text"
+                value={newChapterName}
+                onChange={(e) => setNewChapterName(e.target.value)}
+                placeholder="New chapter name (e.g. Chapter 1: Algebra)"
+                onKeyDown={(e) => e.key === 'Enter' && addChapter()}
+                className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm focus:border-primary-500 focus:outline-none"
+              />
+              <AnimatedButton onClick={addChapter} className="w-full md:w-auto">
+                <Plus className="h-4 w-4" />
+                Add Chapter
+              </AnimatedButton>
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        <div
+          className={cn(
+            'grid gap-6',
+            viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1',
+          )}
+        >
+          {chapters.map((chapter, index) => (
+            <motion.div
+              key={chapter.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <GlassCard className="overflow-hidden p-6 hover:scale-[1.02]">
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {chapter.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {chapter.lectures.length} lectures
+                    </p>
+                  </div>
+                  <button className="rounded-lg p-1 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <MoreVertical className="h-5 w-5 text-gray-400" />
+                  </button>
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-300">Progress</span>
+                    <span className="font-medium text-primary-500">{chapter.progress}%</span>
+                  </div>
+                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${chapter.progress}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                      className="h-full rounded-full bg-gradient-to-r from-primary-500 to-accent-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {chapter.lectures.map((lecture) => (
+                    <div
+                      key={lecture.id}
+                      className="flex items-center gap-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 p-3"
+                    >
+                      <div
+                        className={cn(
+                          'rounded-full p-1',
+                          getStatusColor(lecture.status),
+                        )}
+                      >
+                        {getStatusIcon(lecture.status)}
+                      </div>
+                      <span className="flex-1 text-sm text-gray-700 dark:text-gray-300">
+                        {lecture.title}
+                      </span>
+                      {lecture.bookmarked && (
+                        <Star className="h-4 w-4 fill-accent-500 text-accent-500" />
+                      )}
+                      <button className="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <Bell className="h-4 w-4 text-gray-400" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <AnimatedButton variant="outline" size="sm" className="mt-4 w-full">
+                  <Plus className="h-4 w-4" />
+                  Add Lecture
+                </AnimatedButton>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
+
+        {chapters.length === 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-16">
+            <BookOpen className="h-16 w-16 text-gray-300 dark:text-gray-600" />
+            <h3 className="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">
+              No chapters yet
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Start by creating your first chapter above.
+            </p>
+          </motion.div>
+        )}
       </div>
     </div>
   );

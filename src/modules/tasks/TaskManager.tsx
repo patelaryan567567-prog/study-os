@@ -1,362 +1,242 @@
-import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { CircularProgress } from "@/components/ui/Progress";
-import { PageContainer } from "@/components/layout/PageContainer";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Check, Trash, Repeat, Bell, Calendar, CheckSquare } from "lucide-react";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Plus,
+  Check,
+  Clock,
+  Tag,
+  Calendar as CalendarIcon,
+  Filter,
+  Search,
+  AlertCircle,
+  ArrowUp,
+  MoreVertical,
+} from 'lucide-react';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { GradientText } from '@/components/ui/GradientText';
+import { cn } from '@/utils';
 
-type Frequency = "Daily" | "Weekly" | "One-off" | "Monthly";
-
-type Task = {
+interface Task {
   id: string;
   title: string;
-  notes?: string;
-  completed?: boolean;
-  priority?: number; // 1-5
-  tags?: string[];
-  frequency?: Frequency;
-  dueDate?: string | null; // YYYY-MM-DD
-  reminder?: string | null; // ISO datetime
-  recurring?: string | null; // simple rule placeholder
-  createdAt: string;
-};
-
-const STORAGE_KEY = "studyos_tasks_v1";
-
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
+  completed: boolean;
+  priority: 'high' | 'medium' | 'low';
+  dueDate: string;
+  tags: string[];
+  type: 'daily' | 'weekly' | 'one-off';
 }
 
 export function TaskManager() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [title, setTitle] = useState("");
-  const [notes, setNotes] = useState("");
-  const [priority, setPriority] = useState(3);
-  const [tags, setTags] = useState("");
-  const [frequency, setFrequency] = useState<Frequency>("One-off");
-  const [dueDate, setDueDate] = useState("");
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setTasks(JSON.parse(raw));
-    } catch (e) {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    } catch (e) {}
-  }, [tasks]);
-
-  const addTask = () => {
-    if (!title.trim()) return;
-    const t: Task = {
-      id: uid("t_"),
-      title: title.trim(),
-      notes: notes.trim() || undefined,
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: '1',
+      title: 'Complete Math Assignment',
       completed: false,
-      priority,
-      tags: tags
-        ? tags
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [],
-      frequency,
-      dueDate: dueDate || null,
-      reminder: null,
-      recurring: null,
-      createdAt: new Date().toISOString(),
-    };
-    setTasks((s) => [t, ...s]);
-    setTitle("");
-    setNotes("");
-    setPriority(3);
-    setTags("");
-    setFrequency("One-off");
-    setDueDate("");
+      priority: 'high',
+      dueDate: '2026-08-06',
+      tags: ['Math', 'Homework'],
+      type: 'daily',
+    },
+    {
+      id: '2',
+      title: 'Review Physics Chapter 3',
+      completed: false,
+      priority: 'medium',
+      dueDate: '2026-08-07',
+      tags: ['Physics', 'Review'],
+      type: 'weekly',
+    },
+    {
+      id: '3',
+      title: 'Submit Research Paper',
+      completed: true,
+      priority: 'high',
+      dueDate: '2026-08-04',
+      tags: ['Research', 'Important'],
+      type: 'one-off',
+    },
+  ]);
+
+  const [newTask, setNewTask] = useState('');
+  const [selectedType, setSelectedType] = useState<'all' | 'daily' | 'weekly' | 'one-off'>('all');
+
+  const filteredTasks = tasks.filter(
+    (task) => selectedType === 'all' || task.type === selectedType,
+  );
+
+  const toggleTask = (id: string) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task,
+      ),
+    );
   };
 
-  const toggleComplete = (id: string) =>
-    setTasks((s) =>
-      s.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
-    );
-  const removeTask = (id: string) =>
-    setTasks((s) => s.filter((t) => t.id !== id));
-  const updateTask = (id: string, patch: Partial<Task>) =>
-    setTasks((s) => s.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  const getPriorityColor = (priority: Task['priority']) => {
+    switch (priority) {
+      case 'high':
+        return 'text-error bg-error/10';
+      case 'medium':
+        return 'text-warning bg-warning/10';
+      case 'low':
+        return 'text-info bg-info/10';
+    }
+  };
 
-  const today = new Date().toISOString().slice(0, 10);
-  const weekAhead = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().slice(0, 10);
-  })();
-
-  const metrics = useMemo(() => {
-    const daily = tasks.filter(
-      (t) => t.frequency === "Daily" || (t.dueDate === today && !t.completed),
-    );
-    const weekly = tasks.filter(
-      (t) =>
-        t.frequency === "Weekly" ||
-        (t.dueDate && t.dueDate >= today && t.dueDate <= weekAhead),
-    );
-    const pending = tasks.filter((t) => !t.completed);
-    const overdue = tasks.filter(
-      (t) => t.dueDate && t.dueDate < today && !t.completed,
-    );
-    return { daily, weekly, pending, overdue };
-  }, [tasks, today, weekAhead]);
+  const taskStats = {
+    total: tasks.length,
+    completed: tasks.filter((t) => t.completed).length,
+    pending: tasks.filter((t) => !t.completed).length,
+    overdue: tasks.filter((t) => !t.completed && new Date(t.dueDate) < new Date()).length,
+  };
 
   return (
-    <PageContainer className="space-y-6 pb-10">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[var(--color-accent)]/15 flex items-center justify-center text-[var(--color-accent)]">
-            <CheckSquare size={18} />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Task Manager</h2>
-            <p className="text-xs text-[var(--color-text-muted)]">Daily, weekly & recurring tasks</p>
-          </div>
-        </div>
-        <CircularProgress
-          value={
-            tasks.length
-              ? Math.round((tasks.filter((t) => t.completed).length / tasks.length) * 100)
-              : 0
-          }
-          size={64}
-          strokeWidth={5}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 p-8">
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
         >
-          <div className="text-xs font-bold">
-            {tasks.length ? Math.round((tasks.filter((t) => t.completed).length / tasks.length) * 100) : 0}%
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+                <GradientText from="from-primary-500" to="to-accent-500">
+                  Task Manager
+                </GradientText>
+              </h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                {taskStats.pending} tasks pending � {taskStats.overdue} overdue
+              </p>
+            </div>
+            <AnimatedButton>
+              <Plus className="h-4 w-4" />
+              Add New Task
+            </AnimatedButton>
           </div>
-        </CircularProgress>
+        </motion.div>
+
+        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            { label: 'Total Tasks', value: taskStats.total, color: 'primary' },
+            { label: 'Completed', value: taskStats.completed, color: 'success' },
+            { label: 'Pending', value: taskStats.pending, color: 'warning' },
+            { label: 'Overdue', value: taskStats.overdue, color: 'error' },
+          ].map((stat) => (
+            <GlassCard key={stat.label} className="p-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+              <p
+                className={cn(
+                  'text-2xl font-bold',
+                  `text-${stat.color}-500`,
+                )}
+              >
+                {stat.value}
+              </p>
+            </GlassCard>
+          ))}
+        </div>
+
+        <div className="mb-6 flex flex-wrap gap-3">
+          {['all', 'daily', 'weekly', 'one-off'].map((type) => (
+            <button
+              key={type}
+              onClick={() => setSelectedType(type as any)}
+              className={cn(
+                'rounded-xl px-4 py-2 text-sm font-medium capitalize transition-all',
+                selectedType === type
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700',
+              )}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          {filteredTasks.map((task, index) => (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <GlassCard className="p-4 hover:scale-[1.01]">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => toggleTask(task.id)}
+                    className={cn(
+                      'h-6 w-6 shrink-0 rounded-lg border-2 transition-all',
+                      task.completed
+                        ? 'border-primary-500 bg-primary-500'
+                        : 'border-gray-300 dark:border-gray-600',
+                    )}
+                  >
+                    {task.completed && <Check className="h-4 w-4 text-white" />}
+                  </button>
+
+                  <div className="flex-1">
+                    <p
+                      className={cn(
+                        'font-medium text-gray-900 dark:text-white',
+                        task.completed && 'line-through text-gray-400 dark:text-gray-500',
+                      )}
+                    >
+                      {task.title}
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          'rounded-full px-2 py-0.5 text-xs font-medium capitalize',
+                          getPriorityColor(task.priority),
+                        )}
+                      >
+                        {task.priority}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                        <CalendarIcon className="h-3 w-3" />
+                        {task.dueDate}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {task.type}
+                      </span>
+                      {task.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded bg-primary-500/10 px-2 py-0.5 text-xs text-primary-500"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <MoreVertical className="h-5 w-5 text-gray-400" />
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
+
+        {filteredTasks.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="rounded-full bg-gray-100 dark:bg-gray-800 p-4">
+              <Check className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">
+              All tasks completed! ??
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Great job! Add new tasks to keep the momentum going
+            </p>
+          </div>
+        )}
       </div>
-
-      <Card padding="md">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-3">Add new task</p>
-        <div className="grid md:grid-cols-3 gap-3">
-          <Input
-            placeholder="Task title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <Input
-            placeholder="Tags (comma separated)"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-          />
-          <select value={frequency} onChange={(e) => setFrequency(e.target.value as Frequency)}>
-            <option>One-off</option>
-            <option>Daily</option>
-            <option>Weekly</option>
-            <option>Monthly</option>
-          </select>
-        </div>
-        <div className="grid md:grid-cols-3 gap-3 mt-3">
-          <Input
-            type="date"
-            value={dueDate}
-            onChange={(e: any) => setDueDate(e.target.value)}
-          />
-          <select value={priority} onChange={(e: any) => setPriority(Number(e.target.value))}>
-            <option value={1}>P1 — Critical</option>
-            <option value={2}>P2 — High</option>
-            <option value={3}>P3 — Medium</option>
-            <option value={4}>P4 — Low</option>
-            <option value={5}>P5 — Minimal</option>
-          </select>
-          <div className="flex gap-2">
-            <Button variant="primary" onClick={addTask}>
-              <Plus size={14} /> Add Task
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card padding="md">
-          <h4 className="font-semibold">Daily Tasks</h4>
-          <p className="text-xs text-[var(--color-text-muted)]">
-            {metrics.daily.length} items
-          </p>
-          <div className="mt-3 space-y-2">
-            <AnimatePresence>
-              {metrics.daily.map((t) => (
-                <motion.div
-                  key={t.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="flex items-center justify-between glass rounded-xl p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <Button
-                      size="icon"
-                      variant={t.completed ? "success" : "ghost"}
-                      onClick={() => toggleComplete(t.id)}
-                    >
-                      <Check size={14} />
-                    </Button>
-                    <div>
-                      <div className="font-medium">{t.title}</div>
-                      <div className="text-xs text-[var(--color-text-muted)]">
-                        {t.tags
-                          ?.slice(0, 3)
-                          .map((tag) => `#${tag}`)
-                          .join(" ")}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-xs text-[var(--color-text-muted)]">
-                      P{t.priority}
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="danger"
-                      onClick={() => removeTask(t.id)}
-                    >
-                      <Trash size={14} />
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </Card>
-
-        <Card padding="md">
-          <h4 className="font-semibold">Weekly Tasks</h4>
-          <p className="text-xs text-[var(--color-text-muted)]">
-            {metrics.weekly.length} items
-          </p>
-          <div className="mt-3 space-y-2">
-            <AnimatePresence>
-              {metrics.weekly.map((t) => (
-                <motion.div
-                  key={t.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="flex items-center justify-between glass rounded-xl p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <Button
-                      size="icon"
-                      variant={t.completed ? "success" : "ghost"}
-                      onClick={() => toggleComplete(t.id)}
-                    >
-                      <Check size={14} />
-                    </Button>
-                    <div>
-                      <div className="font-medium">{t.title}</div>
-                      <div className="text-xs text-[var(--color-text-muted)]">
-                        {t.dueDate ? (
-                          <>
-                            <Calendar size={12} /> {t.dueDate}
-                          </>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-xs text-[var(--color-text-muted)]">
-                      P{t.priority}
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() =>
-                        updateTask(t.id, {
-                          frequency:
-                            t.frequency === "Weekly" ? "One-off" : "Weekly",
-                        })
-                      }
-                    >
-                      <Repeat size={14} />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="danger"
-                      onClick={() => removeTask(t.id)}
-                    >
-                      <Trash size={14} />
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </Card>
-
-        <Card padding="md">
-          <h4 className="font-semibold">Pending / Upcoming</h4>
-          <p className="text-xs text-[var(--color-text-muted)]">
-            {metrics.pending.length} pending, {metrics.overdue.length} overdue
-          </p>
-          <div className="mt-3 space-y-2">
-            <AnimatePresence>
-              {metrics.pending.slice(0, 8).map((t) => (
-                <motion.div
-                  key={t.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="flex items-center justify-between glass rounded-xl p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="font-medium">{t.title}</div>
-                      <div className="text-xs text-[var(--color-text-muted)]">
-                        {t.dueDate ? `${t.dueDate}` : t.frequency}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() =>
-                        updateTask(t.id, { reminder: new Date().toISOString() })
-                      }
-                    >
-                      <Bell size={14} />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="danger"
-                      onClick={() => removeTask(t.id)}
-                    >
-                      <Trash size={14} />
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </Card>
-      </div>
-
-      <Card padding="md">
-        <h4 className="font-semibold">Tags</h4>
-        <div className="flex gap-2 mt-2 flex-wrap">
-          {Array.from(new Set(tasks.flatMap((t) => t.tags || []))).map(
-            (tag) => (
-              <div key={tag} className="glass rounded-full px-3 py-1 text-sm">
-                #{tag}
-              </div>
-            ),
-          )}
-        </div>
-      </Card>
-    </PageContainer>
+    </div>
   );
 }
 

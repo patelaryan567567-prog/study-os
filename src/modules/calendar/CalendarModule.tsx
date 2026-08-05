@@ -1,276 +1,295 @@
-import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-
-type EventItem = {
-  id: string;
-  title: string;
-  type: "exam" | "lecture" | "revision" | "other";
-  description?: string;
-  start: string;
-  end?: string;
-  allDay?: boolean;
-  location?: string;
-};
-
-const STORAGE_KEY = "studyos_calendar_v1";
-
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
-}
-
-function readJSON(key: string) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Calendar as CalendarIcon,
+  Plus,
+  Download,
+  Share2,
+  Bell,
+  MapPin,
+  Clock,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Star,
+  FileText,
+  Link,
+} from 'lucide-react';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { GradientText } from '@/components/ui/GradientText';
+import { cn } from '@/lib/utils';
 
 export function CalendarModule() {
-  const [events, setEvents] = useState<EventItem[]>(
-    () => readJSON(STORAGE_KEY) || [],
-  );
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState<EventItem["type"]>("lecture");
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [allDay, setAllDay] = useState(false);
-  const [location, setLocation] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<number | null>(null);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-    } catch {}
-  }, [events]);
+  const daysInMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0,
+  ).getDate();
 
-  const upcoming = useMemo(
-    () =>
-      events
-        .slice()
-        .sort(
-          (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
-        ),
-    [events],
-  );
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1,
+  ).getDay();
 
-  function addEvent() {
-    if (!title || !start) return;
-    const e: EventItem = {
-      id: uid("e_"),
-      title,
-      type,
-      start: new Date(start).toISOString(),
-      end: end ? new Date(end).toISOString() : undefined,
-      allDay,
-      location,
-    };
-    setEvents((prev) => [e, ...prev]);
-    // create a reminder entry in SmartReminder storage
-    try {
-      const raw = localStorage.getItem("studyos_reminders_v1");
-      const reminders = raw ? JSON.parse(raw) : [];
-      reminders.unshift({
-        id: uid("r_"),
-        type:
-          type === "lecture"
-            ? "lecture"
-            : type === "revision"
-              ? "revision"
-              : type === "exam"
-                ? "lecture"
-                : "custom",
-        title: `Reminder: ${title}`,
-        time: new Date(start).toISOString(),
-        repeat: "none",
-        notified: false,
-      });
-      localStorage.setItem("studyos_reminders_v1", JSON.stringify(reminders));
-    } catch {}
-    setTitle("");
-    setStart("");
-    setEnd("");
-    setLocation("");
-    setAllDay(false);
-  }
+  const events = [
+    { date: 5, title: 'Math Exam', type: 'exam', color: 'rose' },
+    { date: 12, title: 'Physics Lecture', type: 'lecture', color: 'primary' },
+    { date: 15, title: 'Revision Session', type: 'revision', color: 'accent' },
+    { date: 20, title: 'Chemistry Quiz', type: 'exam', color: 'emerald' },
+  ];
 
-  function removeEvent(id: string) {
-    setEvents((e) => e.filter((x) => x.id !== id));
-  }
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  function exportICS(ev: EventItem) {
-    const dtStart = ev.allDay
-      ? ev.start.slice(0, 10).replace(/-/g, "")
-      : ev.start.replace(/[-:.]/g, "").slice(0, 15) + "Z";
-    const dtEnd = ev.end
-      ? ev.allDay
-        ? ev.end.slice(0, 10).replace(/-/g, "")
-        : ev.end.replace(/[-:.]/g, "").slice(0, 15) + "Z"
-      : "";
-    const ics = [
-      `BEGIN:VCALENDAR`,
-      `VERSION:2.0`,
-      `BEGIN:VEVENT`,
-      `UID:${ev.id}`,
-      `DTSTAMP:${new Date().toISOString().replace(/[-:.]/g, "")}`,
-      `DTSTART:${dtStart}`,
-      dtEnd ? `DTEND:${dtEnd}` : "",
-      `SUMMARY:${ev.title}`,
-      `DESCRIPTION:${ev.description || ""}`,
-      `LOCATION:${ev.location || ""}`,
-      `END:VEVENT`,
-      `END:VCALENDAR`,
-    ]
-      .filter(Boolean)
-      .join("\r\n");
-    const blob = new Blob([ics], { type: "text/calendar" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${ev.title.replace(/\s+/g, "_")}.ics`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  const getEventForDate = (date: number) => {
+    return events.find((e) => e.date === date);
+  };
 
-  function googleCalendarUrl(ev: EventItem) {
-    const format = (dstr: string) =>
-      dstr.replace(/[-:.]/g, "").slice(0, 15) + "Z";
-    const dates = ev.end
-      ? `${format(ev.start)}/${format(ev.end)}`
-      : `${format(ev.start)}/${format(new Date(new Date(ev.start).getTime() + 60 * 60 * 1000).toISOString())}`;
-    const params = new URLSearchParams({
-      action: "TEMPLATE",
-      text: ev.title,
-      dates,
-      details: ev.description || "",
-      location: ev.location || "",
-    });
-    return `https://calendar.google.com/calendar/render?${params.toString()}`;
-  }
+  const prevMonth = () => {
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1),
+    );
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1),
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      <Card padding="lg" className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Calendar</h3>
-          <p className="text-sm text-[var(--color-text-muted)]">
-            Manage exam dates, lecture & revision schedules. Export to ICS or
-            add to Google Calendar.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950/20 p-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Animated Background Glow */}
+        <div className="fixed inset-0 -z-10 overflow-hidden">
+          <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary-500/20 blur-3xl" />
+          <div className="absolute bottom-40 -left-40 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl" />
         </div>
-      </Card>
 
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card padding="md">
-          <h4 className="font-semibold">Add Event</h4>
-          <div className="mt-3 space-y-2">
-            <Input
-              placeholder="Title"
-              value={title}
-              onChange={(e: any) => setTitle(e.target.value)}
-            />
-            <select
-              value={type}
-              onChange={(e: any) => setType(e.target.value)}
-              className="glass p-2 rounded"
-            >
-              <option value="lecture">Lecture</option>
-              <option value="revision">Revision</option>
-              <option value="exam">Exam</option>
-              <option value="other">Other</option>
-            </select>
-            <Input
-              type="datetime-local"
-              value={start}
-              onChange={(e: any) => setStart(e.target.value)}
-            />
-            <Input
-              type="datetime-local"
-              value={end}
-              onChange={(e: any) => setEnd(e.target.value)}
-            />
-            <Input
-              placeholder="Location"
-              value={location}
-              onChange={(e: any) => setLocation(e.target.value)}
-            />
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={allDay}
-                  onChange={(e: any) => setAllDay(e.target.checked)}
-                />{" "}
-                All day
-              </label>
-              <Button variant="primary" onClick={addEvent}>
-                Add
-              </Button>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-5xl font-bold">
+                <span className="shimmer-text">Calendar</span>
+              </h1>
+              <p className="mt-2 text-xl text-gray-400">
+                Manage exam dates, lecture & revision schedules
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <AnimatedButton variant="outline" size="sm">
+                <Download className="h-4 w-4" />
+                Export ICS
+              </AnimatedButton>
+              <AnimatedButton variant="outline" size="sm">
+                <Link className="h-4 w-4" />
+                Google Calendar
+              </AnimatedButton>
             </div>
           </div>
-        </Card>
+        </motion.div>
 
-        <Card padding="md">
-          <h4 className="font-semibold">Upcoming</h4>
-          <div className="mt-3 space-y-2 max-h-[40vh] overflow-auto">
-            {upcoming.map((ev) => (
-              <div
-                key={ev.id}
-                className="flex items-center justify-between p-2 rounded bg-white/5"
-              >
-                <div>
-                  <div className="font-medium">
-                    {ev.title}{" "}
-                    <span className="text-xs text-[var(--color-text-muted)]">
-                      ({ev.type})
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Calendar */}
+          <div className="lg:col-span-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative"
+            >
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary-500/30 via-accent-500/30 to-pink-500/30 blur-xl" />
+              <GlassCard className="relative p-6">
+                {/* Calendar Header */}
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-2xl font-bold text-white">
+                      {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    </h2>
+                    <span className="rounded-full bg-accent-500/20 px-3 py-1 text-sm text-accent-300">
+                      {events.length} Events
                     </span>
                   </div>
-                  <div className="text-xs text-[var(--color-text-muted)]">
-                    {new Date(ev.start).toLocaleString()}{" "}
-                    {ev.end ? " - " + new Date(ev.end).toLocaleString() : ""}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={prevMonth}
+                      className="rounded-lg bg-white/5 p-2 transition-all hover:bg-white/10"
+                    >
+                      <ChevronLeft className="h-5 w-5 text-gray-400" />
+                    </button>
+                    <button
+                      onClick={nextMonth}
+                      className="rounded-lg bg-white/5 p-2 transition-all hover:bg-white/10"
+                    >
+                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => exportICS(ev)}
-                  >
-                    ICS
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => window.open(googleCalendarUrl(ev), "_blank")}
-                  >
-                    Add to Google
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => removeEvent(ev.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
 
-        <Card padding="md">
-          <h4 className="font-semibold">Sync</h4>
-          <p className="text-xs text-[var(--color-text-muted)]">
-            Quick sync options: export ICS to import into Google Calendar or
-            open event in Google Calendar creation page. Full 2-way sync
-            requires OAuth (not implemented).
-          </p>
-        </Card>
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-2">
+                  {days.map((day) => (
+                    <div key={day} className="text-center text-sm font-medium text-gray-400 py-2">
+                      {day}
+                    </div>
+                  ))}
+                  {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                    <div key={`empty-${i}`} className="aspect-square rounded-lg" />
+                  ))}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const date = i + 1;
+                    const event = getEventForDate(date);
+                    const isToday =
+                      date === new Date().getDate() &&
+                      currentDate.getMonth() === new Date().getMonth() &&
+                      currentDate.getFullYear() === new Date().getFullYear();
+                    const isSelected = selectedDate === date;
+
+                    return (
+                      <motion.button
+                        key={date}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setSelectedDate(date)}
+                        className={cn(
+                          'relative aspect-square rounded-lg transition-all',
+                          isToday && 'ring-2 ring-primary-500',
+                          isSelected && 'bg-primary-500/20',
+                          event && 'hover:scale-105',
+                        )}
+                      >
+                        <div className="flex h-full flex-col items-center justify-center">
+                          <span
+                            className={cn(
+                              'text-sm font-medium',
+                              isToday ? 'text-white' : 'text-gray-300',
+                              event && 'text-white',
+                            )}
+                          >
+                            {date}
+                          </span>
+                          {event && (
+                            <div
+                              className="mt-0.5 h-1.5 w-1.5 rounded-full"
+                              style={{
+                                background: `var(--color-${event.color}-500)`,
+                                boxShadow: `0 0 10px var(--color-${event.color}-500)`,
+                              }}
+                            />
+                          )}
+                        </div>
+                        {event && (
+                          <div className="absolute -right-1 -top-1">
+                            <Sparkles className="h-3 w-3 text-accent-500" />
+                          </div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+
+          {/* Add Event & Upcoming */}
+          <div className="space-y-6">
+            {/* Add Event */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="relative"
+            >
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary-500/20 to-accent-500/20 blur-xl" />
+              <GlassCard className="relative p-6">
+                <h2 className="mb-4 text-xl font-bold text-white">Add Event</h2>
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Event Title"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none"
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="date"
+                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-primary-500 focus:outline-none"
+                    />
+                    <input
+                      type="date"
+                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-primary-500 focus:outline-none"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Location"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none"
+                  />
+                  <AnimatedButton className="w-full">
+                    <Plus className="h-4 w-4" />
+                    Add Event
+                  </AnimatedButton>
+                </div>
+              </GlassCard>
+            </motion.div>
+
+            {/* Upcoming Events */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="relative"
+            >
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-accent-500/20 to-pink-500/20 blur-xl" />
+              <GlassCard className="relative p-6">
+                <h2 className="mb-4 text-xl font-bold text-white">Upcoming Events</h2>
+                <div className="space-y-3">
+                  {events.map((event, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="flex items-center gap-3 rounded-xl bg-white/5 p-3 transition-all hover:bg-white/10"
+                    >
+                      <div
+                        className="rounded-lg p-2"
+                        style={{
+                          background: `rgba(var(--glow-${event.color}), 0.15)`,
+                        }}
+                      >
+                        <CalendarIcon
+                          className="h-5 w-5"
+                          style={{
+                            color: `var(--color-${event.color}-500)`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white">{event.title}</h3>
+                        <p className="text-sm text-gray-400">
+                          {months[currentDate.getMonth()]} {event.date}
+                        </p>
+                      </div>
+                      <button className="rounded-lg p-2 transition-all hover:bg-white/10">
+                        <Bell className="h-4 w-4 text-gray-400" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
-export default CalendarModule;

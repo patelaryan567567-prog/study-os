@@ -1,47 +1,114 @@
 :root {
-  /* ── Backgrounds ── */
-  --color-bg-primary:    #05060f;
-  --color-bg-secondary:  #080a18;
-  --color-bg-tertiary:   #0c0e20;
-  --color-bg-card:       #0f1124;
-  --color-bg-glass:      rgba(255, 255, 255, 0.03);
+  /* Primary Colors - Vibrant Purple */
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
 
-  /* ── Borders ── */
-  --color-border:        rgba(255, 255, 255, 0.07);
-  --color-border-hover:  rgba(255, 255, 255, 0.15);
+  /* Accent Colors - Vibrant */
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-pink-500: #ec4899;
+  --color-cyan-500: #06b6d4;
+  --color-emerald-500: #10b981;
+  --color-rose-500: #f43f5e;
+  --color-indigo-500: #6366f1;
+  --color-violet-500: #8b5cf6;
 
-  /* ── Text ── */
-  --color-text-primary:   #f0f0ff;
-  --color-text-secondary: #8888b0;
-  --color-text-muted:     #4a4a70;
+  /* Glow Colors */
+  --glow-primary: 139, 92, 246;
+  --glow-accent: 245, 158, 11;
+  --glow-pink: 236, 72, 153;
+  --glow-cyan: 6, 182, 212;
+  --glow-emerald: 16, 185, 129;
+  --glow-rose: 244, 63, 94;
 
-  /* ── Accent (purple) ── */
-  --color-accent:       #8b5cf6;
-  --color-accent-hover: #a78bfa;
-  --color-accent-glow:  rgba(139, 92, 246, 0.35);
+  /* Typography Sizes - Increased for better hierarchy */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.25rem; /* 20px */
+  --text-xl: 1.5rem; /* 24px */
+  --text-2xl: 1.875rem; /* 30px */
+  --text-3xl: 2.25rem; /* 36px */
+  --text-4xl: 3rem; /* 48px */
+  --text-5xl: 3.75rem; /* 60px */
 
-  /* ── Semantic colors ── */
-  --color-cyan:    #22d3ee;
-  --color-green:   #10b981;
-  --color-amber:   #f59e0b;
-  --color-pink:    #ec4899;
-  --color-blue:    #3b82f6;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger:  #ef4444;
-  --color-info:    #22d3ee;
+  /* Glass Effects */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --glass-backdrop: blur(16px);
+}
 
-  /* ── Font ── */
-  --font-sans: 'Inter', system-ui, sans-serif;
+/* Glow Animations */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(var(--glow-primary), 0.3),
+      0 0 40px rgba(var(--glow-primary), 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(var(--glow-primary), 0.5),
+      0 0 60px rgba(var(--glow-primary), 0.2);
+  }
+}
 
-  /* ── Radii ── */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+@keyframes glow-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(-5px);
+    filter: brightness(1.2);
+  }
+}
 
-  /* ── Layout ── */
-  --sidebar-width:     240px;
-  --sidebar-collapsed: 68px;
-  --topbar-height:     68px;
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.glow-primary {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.glow-accent {
+  animation: glow-pulse 3s ease-in-out infinite;
+  box-shadow:
+    0 0 20px rgba(var(--glow-accent), 0.3),
+    0 0 40px rgba(var(--glow-accent), 0.1);
+}
+
+.glow-float {
+  animation: glow-float 3s ease-in-out infinite;
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-500),
+    var(--color-accent-500),
+    var(--color-pink-500),
+    var(--color-primary-500)
+  );
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
