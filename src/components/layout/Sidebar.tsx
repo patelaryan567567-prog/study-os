@@ -15,8 +15,6 @@ import {
   Calendar,
   Bot,
   Settings,
-  ChevronLeft,
-  ChevronRight,
   GraduationCap,
   UserRound,
 } from "lucide-react";
@@ -107,8 +105,10 @@ export function Sidebar() {
     >
       <div className="pointer-events-none absolute inset-0 rounded-r-[32px] bg-white/5 backdrop-blur-xl md:hidden" />
       {/* Logo */}
-      <div
-        className="flex items-center gap-3 px-4 h-[72px] shrink-0"
+      <button
+        type="button"
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        className="flex items-center gap-3 px-4 h-[72px] shrink-0 w-full text-left cursor-pointer"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
         <div
@@ -146,7 +146,7 @@ export function Sidebar() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </button>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
@@ -269,24 +269,6 @@ export function Sidebar() {
           </div>
         </div>
       )}
-
-      {/* Collapse toggle */}
-      <button
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="absolute -right-3 top-[30px] w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150 z-20 hover:scale-110"
-        style={{
-          background: "rgba(13,14,30,0.95)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          color: "#dbeafe",
-          boxShadow: "0 12px 24px rgba(56,189,248,0.18)",
-        }}
-      >
-        {sidebarCollapsed ? (
-          <ChevronRight size={11} />
-        ) : (
-          <ChevronLeft size={11} />
-        )}
-      </button>
     </motion.aside>
   );
 }

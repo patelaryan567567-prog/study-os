@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { cn } from '@/utils';
+import type { ReactNode } from "react";
+import { cn } from "@/utils";
 
 interface PageContainerProps {
   children: ReactNode;
@@ -10,27 +10,46 @@ interface PageContainerProps {
   icon?: ReactNode;
 }
 
-export function PageContainer({ children, className, title, subtitle, action, icon }: PageContainerProps) {
+export function PageContainer({
+  children,
+  className,
+  title,
+  subtitle,
+  action,
+  icon,
+}: PageContainerProps) {
   return (
-    <section className={cn('min-h-full p-5 lg:p-7 max-w-[1440px] mx-auto w-full', className)}>
+    <section
+      className={cn(
+        "min-h-full p-6 lg:p-8 max-w-[1440px] mx-auto w-full rounded-[28px] border border-white/10 bg-[rgba(255,255,255,0.05)] shadow-[0_18px_40px_rgba(0,0,0,0.18)] backdrop-blur-[16px]",
+        className,
+      )}
+    >
       {(title || action) && (
-        <div className="flex items-start justify-between gap-4 mb-7">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+          <div className="flex items-center gap-3 min-w-0">
             {icon && (
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              <div
+                className="w-12 h-12 rounded-3xl flex items-center justify-center shrink-0"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(124,106,247,0.2), rgba(124,106,247,0.08))',
-                  border: '1px solid rgba(124,106,247,0.2)',
-                }}>
+                  background:
+                    "linear-gradient(135deg, rgba(124,106,247,0.24), rgba(56,189,248,0.16))",
+                  border: "1px solid rgba(124,106,247,0.22)",
+                }}
+              >
                 {icon}
               </div>
             )}
-            <div>
+            <div className="min-w-0">
               {title && (
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">{title}</h2>
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-[var(--color-text-primary)] tracking-tight truncate">
+                  {title}
+                </h2>
               )}
               {subtitle && (
-                <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">{subtitle}</p>
+                <p className="mt-1 text-sm lg:text-base text-[var(--color-text-secondary)] leading-relaxed truncate">
+                  {subtitle}
+                </p>
               )}
             </div>
           </div>

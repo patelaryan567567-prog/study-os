@@ -147,9 +147,9 @@ export function Topbar({ title }: TopbarProps) {
 
   return (
     <header
-      className="sticky top-0 flex items-center justify-between px-6 shrink-0"
+      className="sticky top-0 flex flex-wrap items-center justify-between gap-3 px-6 py-3 shrink-0"
       style={{
-        height: "72px",
+        minHeight: "72px",
         background: "rgba(8, 11, 25, 0.78)",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
@@ -160,19 +160,19 @@ export function Topbar({ title }: TopbarProps) {
       }}
     >
       {/* Title */}
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <h1
-          className="text-[30px] font-extrabold tracking-tight"
+          className="text-[30px] font-extrabold tracking-tight truncate"
           style={{ color: "var(--color-text-primary)" }}
         >
           {title}
         </h1>
-        <p className="mt-1 text-sm text-[rgba(255,255,255,0.55)] hidden md:block">
+        <p className="mt-1 text-sm text-[rgba(255,255,255,0.55)] hidden md:block truncate">
           Stay focused and track your progress in one place.
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 shrink-0">
         {/* Clock */}
         <div
           className="mr-2 px-3 py-1.5 rounded-lg text-xs font-mono"

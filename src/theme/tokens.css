@@ -1,54 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
-
 :root {
-  --color-bg-primary: #07070f;
-  --color-bg-secondary: #0d0d1a;
-  --color-bg-tertiary: #111120;
-  --color-bg-card: #13131f;
-  --color-bg-glass: rgba(255, 255, 255, 0.035);
-  --color-border: rgba(255, 255, 255, 0.07);
-  --color-border-hover: rgba(255, 255, 255, 0.14);
-  --color-text-primary: #eeeeff;
-  --color-text-secondary: #7a7a9a;
-  --color-text-muted: #4a4a65;
-  --color-accent: #7c6af7;
-  --color-accent-hover: #9580ff;
-  --color-accent-glow: rgba(124, 106, 247, 0.25);
-  --color-success: #22d3a0;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #38bdf8;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --sidebar-width: 224px;
-  --sidebar-collapsed: 64px;
-  --topbar-height: 60px;
-}
+  /* ── Backgrounds ── */
+  --color-bg-primary:    #05060f;
+  --color-bg-secondary:  #080a18;
+  --color-bg-tertiary:   #0c0e20;
+  --color-bg-card:       #0f1124;
+  --color-bg-glass:      rgba(255, 255, 255, 0.03);
 
-@theme {
-  --color-bg-primary: #07070f;
-  --color-bg-secondary: #0d0d1a;
-  --color-bg-tertiary: #111120;
-  --color-bg-card: #13131f;
-  --color-bg-glass: rgba(255, 255, 255, 0.035);
-  --color-border: rgba(255, 255, 255, 0.07);
-  --color-border-hover: rgba(255, 255, 255, 0.14);
-  --color-text-primary: #eeeeff;
-  --color-text-secondary: #7a7a9a;
-  --color-text-muted: #4a4a65;
-  --color-accent: #7c6af7;
-  --color-accent-hover: #9580ff;
-  --color-accent-glow: rgba(124, 106, 247, 0.25);
-  --color-success: #22d3a0;
+  /* ── Borders ── */
+  --color-border:        rgba(255, 255, 255, 0.07);
+  --color-border-hover:  rgba(255, 255, 255, 0.15);
+
+  /* ── Text ── */
+  --color-text-primary:   #f0f0ff;
+  --color-text-secondary: #8888b0;
+  --color-text-muted:     #4a4a70;
+
+  /* ── Accent (purple) ── */
+  --color-accent:       #8b5cf6;
+  --color-accent-hover: #a78bfa;
+  --color-accent-glow:  rgba(139, 92, 246, 0.35);
+
+  /* ── Semantic colors ── */
+  --color-cyan:    #22d3ee;
+  --color-green:   #10b981;
+  --color-amber:   #f59e0b;
+  --color-pink:    #ec4899;
+  --color-blue:    #3b82f6;
+  --color-success: #10b981;
   --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #38bdf8;
+  --color-danger:  #ef4444;
+  --color-info:    #22d3ee;
+
+  /* ── Font ── */
   --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* ── Radii ── */
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* ── Layout ── */
+  --sidebar-width:     240px;
+  --sidebar-collapsed: 68px;
+  --topbar-height:     68px;
 }

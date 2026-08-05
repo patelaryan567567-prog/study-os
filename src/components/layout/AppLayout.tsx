@@ -59,31 +59,23 @@ export function AppLayout() {
   return (
     <div
       className="flex h-full w-full overflow-hidden"
-      style={{
-        background:
-          'radial-gradient(circle at top,#1e3a8a22 0%,transparent 35%), radial-gradient(circle at bottom right,#7c3aed18 0%,transparent 40%), linear-gradient(180deg,#030712 0%,#0b1120 100%)',
-      }}
+      style={{ background: '#05060f' }}
     >
-      {/* ── Multi-color ambient orbs ── */}
+      {/* ── Ambient orbs — subtle, no white ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        {/* Purple — top left */}
-        <div style={orbStyle('-162px', undefined, '-108px', undefined, '702px', '702px',
-          'radial-gradient(circle, rgba(124,106,247,0.096) 0%, transparent 65%)')} />
-        {/* Cyan — top right */}
-        <div style={orbStyle('-81px', undefined, undefined, '10%', '513px', '513px',
-          'radial-gradient(circle, rgba(56,189,248,0.064) 0%, transparent 65%)')} />
-        {/* Green — bottom left */}
-        <div style={orbStyle(undefined, '-108px', '20%', undefined, '459px', '459px',
-          'radial-gradient(circle, rgba(34,211,160,0.048) 0%, transparent 65%)')} />
-        {/* Amber — bottom right */}
-        <div style={orbStyle(undefined, '-81px', undefined, '-81px', '540px', '540px',
-          'radial-gradient(circle, rgba(245,158,11,0.04) 0%, transparent 65%)')} />
-        {/* Subtle grid overlay */}
+        <div style={orbStyle('-200px', undefined, '-150px', undefined, '700px', '700px',
+          'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 60%)')} />
+        <div style={orbStyle('-100px', undefined, undefined, '5%', '500px', '500px',
+          'radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 60%)')} />
+        <div style={orbStyle(undefined, '-150px', '15%', undefined, '450px', '450px',
+          'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 60%)')} />
+        <div style={orbStyle(undefined, '-100px', undefined, '-100px', '500px', '500px',
+          'radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 60%)')} />
+        {/* Dot grid */}
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.008) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.008) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
+          backgroundImage: 'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
         }} />
       </div>
 

@@ -19,27 +19,24 @@ const paddings = {
 
 const cardStyles: Record<string, React.CSSProperties> = {
   default: {
-    background: "rgba(255,255,255,0.05)",
+    background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow:
-      "0 20px 50px rgba(8, 15, 42, 0.18), 0 1px 0 rgba(255,255,255,0.06) inset",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
   },
   elevated: {
-    background: "rgba(255,255,255,0.055)",
+    background: "rgba(255,255,255,0.06)",
     border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow:
-      "0 24px 58px rgba(8, 15, 42, 0.2), 0 1px 0 rgba(255,255,255,0.07) inset",
+    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
   },
   sunken: {
-    background: "rgba(255,255,255,0.035)",
+    background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "inset 0 2px 10px rgba(0,0,0,0.35)",
+    boxShadow: "inset 0 2px 10px rgba(0,0,0,0.28)",
   },
   accent: {
-    background:
-      "linear-gradient(135deg, rgba(124,106,247,0.14), rgba(124,106,247,0.06))",
+    background: "rgba(255,255,255,0.06)",
     border: "1px solid rgba(124,106,247,0.18)",
-    boxShadow: "0 20px 44px rgba(124,106,247,0.14)",
+    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
   },
 };
 
@@ -88,7 +85,7 @@ export function Card({
         className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full opacity-10"
         style={{
           background:
-            "radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 60%)",
+            "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 50%)",
         }}
       />
       {children}
@@ -116,9 +113,9 @@ export function StatCard({
   return (
     <Card hover className="relative overflow-hidden">
       <div
-        className="absolute inset-0 opacity-[0.06] pointer-events-none"
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
-          background: `radial-gradient(circle at top right, ${color}, transparent 60%)`,
+          background: `radial-gradient(circle at top right, ${color}, transparent 40%)`,
         }}
       />
       <div className="flex items-start justify-between relative">

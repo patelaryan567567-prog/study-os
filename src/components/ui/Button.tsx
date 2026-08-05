@@ -20,14 +20,14 @@ const variants = {
 
 const variantStyles: Record<string, React.CSSProperties> = {
   primary: {
-    background: "linear-gradient(135deg, #3B82F6, #6366F1)",
-    boxShadow: "0 18px 40px rgba(59,130,246,0.22)",
-    border: "1px solid rgba(255,255,255,0.14)",
+    background: "linear-gradient(135deg, #4F46E5, #0EA5E9)",
+    boxShadow: "0 18px 44px rgba(59,130,246,0.24)",
+    border: "1px solid rgba(59,130,246,0.18)",
   },
   secondary: {
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 14px 30px rgba(15,23,42,0.12)",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(124,106,247,0.18)",
+    boxShadow: "0 16px 32px rgba(124,106,247,0.14)",
   },
   ghost: {
     background: "transparent",
