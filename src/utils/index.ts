@@ -5,19 +5,28 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(date: string | Date): string {
+  const parsed = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(date);
+  }).format(parsed);
 }
 
-export function formatTime(hours: number): string {
-  if (hours < 1) {
-    return `${Math.round(hours * 60)}m`;
+export function formatTime(value: number | string | Date): string {
+  if (typeof value === "number") {
+    if (value < 1) {
+      return `${Math.round(value * 60)}m`;
+    }
+    return `${Math.floor(value)}h ${Math.round((value % 1) * 60)}m`;
   }
-  return `${Math.floor(hours)}h ${Math.round((hours % 1) * 60)}m`;
+
+  const parsed = typeof value === "string" ? new Date(value) : value;
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(parsed);
 }
 
 export function getGreeting(): string {
@@ -37,21 +46,6 @@ export function getProgressColor(percent: number): string {
 
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-}
-
-export function formatTime(date: string | Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(date));
 }
 
 export function isToday(dateStr: string): boolean {

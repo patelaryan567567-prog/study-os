@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 import {
   Clock,
   Target,
@@ -17,84 +17,84 @@ import {
   Crown,
   Gem,
   Coins,
-} from 'lucide-react';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { GradientText } from '@/components/ui/GradientText';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { GradientText } from "@/components/ui/GradientText";
+import { cn } from "@/lib/utils";
 
 export function Dashboard() {
   const stats = [
     {
       label: "Today's Study",
-      value: '3.5h',
+      value: "3.5h",
       icon: Clock,
-      color: 'primary',
-      glow: 'rgba(139, 92, 246, 0.4)',
-      subtext: '2 sessions completed',
+      color: "primary",
+      glow: "rgba(139, 92, 246, 0.4)",
+      subtext: "2 sessions completed",
     },
     {
-      label: 'Weekly Hours',
-      value: '12h',
+      label: "Weekly Hours",
+      value: "12h",
       icon: TrendingUp,
-      color: 'accent',
-      glow: 'rgba(245, 158, 11, 0.4)',
-      subtext: '? 15% from last week',
+      color: "accent",
+      glow: "rgba(245, 158, 11, 0.4)",
+      subtext: "? 15% from last week",
     },
     {
-      label: 'Monthly Hours',
-      value: '48h',
+      label: "Monthly Hours",
+      value: "48h",
       icon: Calendar,
-      color: 'pink',
-      glow: 'rgba(236, 72, 153, 0.4)',
-      subtext: 'On track for 60h',
+      color: "pink",
+      glow: "rgba(236, 72, 153, 0.4)",
+      subtext: "On track for 60h",
     },
     {
-      label: 'Total XP',
-      value: '2,450',
+      label: "Total XP",
+      value: "2,450",
       icon: Award,
-      color: 'cyan',
-      glow: 'rgba(6, 182, 212, 0.4)',
-      subtext: 'Level 7 · 350 to next',
+      color: "cyan",
+      glow: "rgba(6, 182, 212, 0.4)",
+      subtext: "Level 7 - 350 to next",
     },
     {
-      label: 'Coins',
-      value: '1,280',
+      label: "Coins",
+      value: "1,280",
       icon: Coins,
-      color: 'emerald',
-      glow: 'rgba(16, 185, 129, 0.4)',
-      subtext: '+50 today',
+      color: "emerald",
+      glow: "rgba(16, 185, 129, 0.4)",
+      subtext: "+50 today",
     },
     {
-      label: 'Study Streak',
-      value: '12 days',
+      label: "Study Streak",
+      value: "12 days",
       icon: Flame,
-      color: 'rose',
-      glow: 'rgba(244, 63, 94, 0.4)',
-      subtext: '?? Keep going!',
+      color: "rose",
+      glow: "rgba(244, 63, 94, 0.4)",
+      subtext: "?? Keep going!",
     },
   ];
 
   const recentActivity = [
     {
-      title: 'Completed Deep Focus Session',
-      time: '2 hours ago',
-      description: 'Finished a 90-minute uninterrupted study block',
+      title: "Completed Deep Focus Session",
+      time: "2 hours ago",
+      description: "Finished a 90-minute uninterrupted study block",
       icon: Zap,
-      color: 'primary',
+      color: "primary",
     },
     {
-      title: 'Streak Extended',
-      time: 'Yesterday',
-      description: 'You kept your learning streak alive for another day',
+      title: "Streak Extended",
+      time: "Yesterday",
+      description: "You kept your learning streak alive for another day",
       icon: Flame,
-      color: 'rose',
+      color: "rose",
     },
     {
-      title: 'Reached Weekly High',
-      time: '3 days ago',
-      description: 'Your weekly total hours hit a new personal best',
+      title: "Reached Weekly High",
+      time: "3 days ago",
+      description: "Your weekly total hours hit a new personal best",
       icon: Rocket,
-      color: 'accent',
+      color: "accent",
     },
   ];
 
@@ -148,37 +148,41 @@ export function Dashboard() {
                 className="absolute -inset-0.5 rounded-2xl blur-xl opacity-50"
                 style={{
                   background: `radial-gradient(circle at center, ${stat.glow}, transparent 70%)`,
-                  animation: 'glow-pulse 3s ease-in-out infinite',
+                  animation: "glow-pulse 3s ease-in-out infinite",
                 }}
               />
               <GlassCard className="relative overflow-hidden p-6 transition-all hover:scale-[1.02]">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-400">{stat.label}</p>
-                    <p className="mt-2 text-3xl font-bold text-white">{stat.value}</p>
+                    <p className="text-sm font-medium text-gray-400">
+                      {stat.label}
+                    </p>
+                    <p className="mt-2 text-3xl font-bold text-white">
+                      {stat.value}
+                    </p>
                     <p className="mt-1 text-xs text-gray-500">{stat.subtext}</p>
                   </div>
                   <div
                     className="rounded-xl p-3"
                     style={{
-                      background: `rgba(${stat.color === 'primary' ? '139, 92, 246' : stat.color === 'accent' ? '245, 158, 11' : stat.color === 'pink' ? '236, 72, 153' : stat.color === 'cyan' ? '6, 182, 212' : stat.color === 'emerald' ? '16, 185, 129' : '244, 63, 94'}, 0.15)`,
+                      background: `rgba(${stat.color === "primary" ? "139, 92, 246" : stat.color === "accent" ? "245, 158, 11" : stat.color === "pink" ? "236, 72, 153" : stat.color === "cyan" ? "6, 182, 212" : stat.color === "emerald" ? "16, 185, 129" : "244, 63, 94"}, 0.15)`,
                     }}
                   >
                     <stat.icon
                       className="h-6 w-6"
                       style={{
                         color:
-                          stat.color === 'primary'
-                            ? '#8b5cf6'
-                            : stat.color === 'accent'
-                            ? '#f59e0b'
-                            : stat.color === 'pink'
-                            ? '#ec4899'
-                            : stat.color === 'cyan'
-                            ? '#06b6d4'
-                            : stat.color === 'emerald'
-                            ? '#10b981'
-                            : '#f43f5e',
+                          stat.color === "primary"
+                            ? "#8b5cf6"
+                            : stat.color === "accent"
+                              ? "#f59e0b"
+                              : stat.color === "pink"
+                                ? "#ec4899"
+                                : stat.color === "cyan"
+                                  ? "#06b6d4"
+                                  : stat.color === "emerald"
+                                    ? "#10b981"
+                                    : "#f43f5e",
                       }}
                     />
                   </div>
@@ -203,22 +207,48 @@ export function Dashboard() {
               <GlassCard className="relative p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Today's Progress</h2>
-                    <p className="text-sm text-gray-400">How far you've come this week</p>
+                    <h2 className="text-2xl font-bold text-white">
+                      Today's Progress
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      How far you've come this week
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 rounded-full bg-primary-500/20 px-3 py-1">
                     <Sparkles className="h-4 w-4 text-primary-400" />
-                    <span className="text-sm text-primary-300">75% Complete</span>
+                    <span className="text-sm text-primary-300">
+                      75% Complete
+                    </span>
                   </div>
                 </div>
 
                 {/* Subjects Progress */}
                 <div className="space-y-4">
                   {[
-                    { subject: 'Mathematics', progress: 75, hours: 2.5, color: 'primary' },
-                    { subject: 'Physics', progress: 45, hours: 1.5, color: 'accent' },
-                    { subject: 'Chemistry', progress: 30, hours: 1, color: 'pink' },
-                    { subject: 'Biology', progress: 60, hours: 1.5, color: 'emerald' },
+                    {
+                      subject: "Mathematics",
+                      progress: 75,
+                      hours: 2.5,
+                      color: "primary",
+                    },
+                    {
+                      subject: "Physics",
+                      progress: 45,
+                      hours: 1.5,
+                      color: "accent",
+                    },
+                    {
+                      subject: "Chemistry",
+                      progress: 30,
+                      hours: 1,
+                      color: "pink",
+                    },
+                    {
+                      subject: "Biology",
+                      progress: 60,
+                      hours: 1.5,
+                      color: "emerald",
+                    },
                   ].map((subject, index) => (
                     <motion.div
                       key={subject.subject}
@@ -236,16 +266,22 @@ export function Dashboard() {
                               boxShadow: `0 0 20px var(--color-${subject.color}-500)`,
                             }}
                           />
-                          <span className="text-lg font-semibold text-white">{subject.subject}</span>
-                          <span className="text-sm text-gray-400">{subject.hours}h</span>
+                          <span className="text-lg font-semibold text-white">
+                            {subject.subject}
+                          </span>
+                          <span className="text-sm text-gray-400">
+                            {subject.hours}h
+                          </span>
                         </div>
-                        <span className="text-lg font-bold text-white">{subject.progress}%</span>
+                        <span className="text-lg font-bold text-white">
+                          {subject.progress}%
+                        </span>
                       </div>
                       <div className="h-3 w-full overflow-hidden rounded-full bg-gray-800/50">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${subject.progress}%` }}
-                          transition={{ duration: 1.5, ease: 'easeOut' }}
+                          transition={{ duration: 1.5, ease: "easeOut" }}
                           className="h-full rounded-full"
                           style={{
                             background: `linear-gradient(90deg, var(--color-${subject.color}-500), var(--color-${subject.color}-400))`,
@@ -270,7 +306,9 @@ export function Dashboard() {
             >
               <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary-500/20 via-accent-500/20 to-pink-500/20 blur-xl" />
               <GlassCard className="relative p-6">
-                <h2 className="mb-6 text-2xl font-bold text-white">Recent Activity</h2>
+                <h2 className="mb-6 text-2xl font-bold text-white">
+                  Recent Activity
+                </h2>
                 <div className="space-y-4">
                   {recentActivity.map((activity, index) => (
                     <motion.div
@@ -295,9 +333,15 @@ export function Dashboard() {
                           />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-white">{activity.title}</h3>
-                          <p className="text-sm text-gray-400">{activity.description}</p>
-                          <p className="mt-1 text-xs text-gray-500">{activity.time}</p>
+                          <h3 className="font-semibold text-white">
+                            {activity.title}
+                          </h3>
+                          <p className="text-sm text-gray-400">
+                            {activity.description}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            {activity.time}
+                          </p>
                         </div>
                       </div>
                       <div className="absolute right-3 top-3 h-2 w-2 rounded-full bg-primary-500/50">
