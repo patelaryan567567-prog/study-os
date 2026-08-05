@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { CircularProgress } from "@/components/ui/Progress";
+import { EmptyState } from "@/components/ui";
 import { Plus, Check, Star, Bookmark, Clock, Trash, Edit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -339,9 +340,14 @@ function ChapterLectures({
 
       <div className="space-y-2">
         {chapter.lectures.length === 0 && (
-          <p className="text-sm text-[var(--color-text-muted)]">
-            No lectures yet.
-          </p>
+          <div className="py-4">
+            <EmptyState
+              title="No lectures yet"
+              description="Create your first lecture to get started"
+              primaryLabel="Add Lecture"
+              onPrimary={() => onAddLecture("New Lecture")}
+            />
+          </div>
         )}
         {chapter.lectures.map((lec: Lecture) => (
           <div

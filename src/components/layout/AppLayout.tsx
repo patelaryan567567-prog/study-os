@@ -22,6 +22,27 @@ const PAGE_TITLES: Record<string, string> = {
   '/profile': 'Profile',
 };
 
+const orbStyle = (
+  top: string | undefined,
+  bottom: string | undefined,
+  left: string | undefined,
+  right: string | undefined,
+  width: string,
+  height: string,
+  color: string,
+) => ({
+  position: 'absolute' as const,
+  ...(top !== undefined && { top }),
+  ...(bottom !== undefined && { bottom }),
+  ...(left !== undefined && { left }),
+  ...(right !== undefined && { right }),
+  width,
+  height,
+  borderRadius: '50%',
+  background: color,
+  filter: 'blur(80px)',
+});
+
 export function AppLayout() {
   const { focusMode } = useAppStore();
   const location = useLocation();
@@ -36,43 +57,33 @@ export function AppLayout() {
   }
 
   return (
-    <div className="flex h-full w-full overflow-hidden" style={{ background: '#07070f' }}>
-
+    <div
+      className="flex h-full w-full overflow-hidden"
+      style={{
+        background:
+          'radial-gradient(circle at top,#1e3a8a22 0%,transparent 35%), radial-gradient(circle at bottom right,#7c3aed18 0%,transparent 40%), linear-gradient(180deg,#030712 0%,#0b1120 100%)',
+      }}
+    >
       {/* ── Multi-color ambient orbs ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
         {/* Purple — top left */}
-        <div style={{
-          position: 'absolute', top: '-120px', left: '-80px',
-          width: '520px', height: '520px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,106,247,0.12) 0%, transparent 65%)',
-          filter: 'blur(1px)',
-        }} />
+        <div style={orbStyle('-162px', undefined, '-108px', undefined, '702px', '702px',
+          'radial-gradient(circle, rgba(124,106,247,0.096) 0%, transparent 65%)')} />
         {/* Cyan — top right */}
-        <div style={{
-          position: 'absolute', top: '-60px', right: '10%',
-          width: '380px', height: '380px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 65%)',
-          filter: 'blur(1px)',
-        }} />
+        <div style={orbStyle('-81px', undefined, undefined, '10%', '513px', '513px',
+          'radial-gradient(circle, rgba(56,189,248,0.064) 0%, transparent 65%)')} />
         {/* Green — bottom left */}
-        <div style={{
-          position: 'absolute', bottom: '-80px', left: '20%',
-          width: '340px', height: '340px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(34,211,160,0.06) 0%, transparent 65%)',
-          filter: 'blur(1px)',
-        }} />
+        <div style={orbStyle(undefined, '-108px', '20%', undefined, '459px', '459px',
+          'radial-gradient(circle, rgba(34,211,160,0.048) 0%, transparent 65%)')} />
         {/* Amber — bottom right */}
-        <div style={{
-          position: 'absolute', bottom: '-60px', right: '-60px',
-          width: '400px', height: '400px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 65%)',
-          filter: 'blur(1px)',
-        }} />
+        <div style={orbStyle(undefined, '-81px', undefined, '-81px', '540px', '540px',
+          'radial-gradient(circle, rgba(245,158,11,0.04) 0%, transparent 65%)')} />
         {/* Subtle grid overlay */}
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.008) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.008) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
         }} />
       </div>
 
@@ -82,7 +93,15 @@ export function AppLayout() {
       </div>
 
       {/* ── Main area ── */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden" style={{ position: 'relative', zIndex: 1 }}>
+      <div
+        className="flex flex-col flex-1 min-w-0 overflow-hidden"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          backdropFilter: 'blur(2px)',
+          WebkitBackdropFilter: 'blur(2px)',
+        }}
+      >
         <Topbar title={title} />
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <AnimatePresence mode="wait">
@@ -91,8 +110,11 @@ export function AppLayout() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="h-full"
+              style={{
+                padding: 'clamp(12px, 2vw, 24px)',
+              }}
             >
               <Outlet />
             </motion.div>

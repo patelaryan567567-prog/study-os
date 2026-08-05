@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { EmptyState } from "@/components/ui";
 import { CircularProgress } from "@/components/ui/Progress";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Timer } from "lucide-react";
@@ -200,8 +201,12 @@ export function FocusMode() {
           <Timer size={18} />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Focus Mode</h2>
-          <p className="text-xs text-[var(--color-text-muted)]">Pomodoro, countdown, stopwatch & ambient sounds</p>
+          <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+            Focus Mode
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)]">
+            Pomodoro, countdown, stopwatch & ambient sounds
+          </p>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">
@@ -211,13 +216,20 @@ export function FocusMode() {
           <option value="stopwatch">Stopwatch</option>
           <option value="alarm">Alarm</option>
         </select>
-        <select value={ambient} onChange={(e) => setAmbient(e.target.value as any)}>
+        <select
+          value={ambient}
+          onChange={(e) => setAmbient(e.target.value as any)}
+        >
           <option value="off">🔇 No Ambient</option>
           <option value="white">🌬 White Noise</option>
           <option value="rain">🌧 Rain</option>
           <option value="forest">🌲 Forest</option>
         </select>
-        <Button variant="ghost" size="sm" onClick={() => setFloating((f) => !f)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setFloating((f) => !f)}
+        >
           {floating ? "Hide Float" : "Float Timer"}
         </Button>
         <Button variant="ghost" size="sm" onClick={toggleFullscreen}>
@@ -228,14 +240,19 @@ export function FocusMode() {
       <Card padding="lg">
         <div className="flex items-center justify-between gap-6">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)] mb-1">Current mode</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
+              Current mode
+            </p>
             <h3 className="text-xl font-bold text-[var(--color-text-primary)]">
               {mode === "pomodoro"
-                ? isOnBreak ? "Break Time" : "Focus Work"
+                ? isOnBreak
+                  ? "Break Time"
+                  : "Focus Work"
                 : mode.charAt(0).toUpperCase() + mode.slice(1)}
             </h3>
             <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-              {mode === "pomodoro" && `Cycle ${currentCycle + 1} · ${isOnBreak ? "Rest up" : "Stay focused"}`}
+              {mode === "pomodoro" &&
+                `Cycle ${currentCycle + 1} · ${isOnBreak ? "Rest up" : "Stay focused"}`}
               {mode === "countdown" && "Count down to zero"}
               {mode === "stopwatch" && "Track elapsed time"}
               {mode === "alarm" && "Alert at a set time"}
@@ -255,7 +272,9 @@ export function FocusMode() {
           >
             <div className="text-center">
               <div className="text-base font-mono font-bold text-[var(--color-text-primary)]">
-                {mode === "stopwatch" ? formatted(stopwatchElapsed) : formatted(secondsLeft)}
+                {mode === "stopwatch"
+                  ? formatted(stopwatchElapsed)
+                  : formatted(secondsLeft)}
               </div>
             </div>
           </CircularProgress>
@@ -416,9 +435,14 @@ export function FocusMode() {
         <h4 className="font-semibold">Session History</h4>
         <div className="space-y-2 mt-2">
           {history.length === 0 && (
-            <p className="text-sm text-[var(--color-text-muted)]">
-              No sessions yet.
-            </p>
+            <div className="py-4">
+              <EmptyState
+                title="No sessions yet"
+                description="Start a focus session to record history"
+                primaryLabel="Start Pomodoro"
+                onPrimary={() => startPomodoro()}
+              />
+            </div>
           )}
           {history.map((h) => (
             <div

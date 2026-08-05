@@ -1,72 +1,102 @@
-import { motion } from 'framer-motion';
-import { cn } from '@/utils';
+import { motion } from "framer-motion";
+import { cn } from "@/utils";
+import { SkeletonButton } from "./Skeleton";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
-  size?: 'sm' | 'md' | 'lg' | 'icon';
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "success";
+  size?: "sm" | "md" | "lg" | "icon";
   loading?: boolean;
   children: React.ReactNode;
 }
 
 const variants = {
-  primary: 'text-white font-semibold',
-  secondary: 'text-[var(--color-text-primary)] font-medium',
-  ghost: 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium',
-  danger: 'text-[var(--color-danger)] font-medium',
-  success: 'text-[var(--color-success)] font-medium',
+  primary: "text-white font-semibold tracking-[0.2px]",
+  secondary: "text-[var(--color-text-primary)] font-semibold tracking-[0.2px]",
+  ghost:
+    "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-semibold tracking-[0.2px]",
+  danger: "text-white font-semibold tracking-[0.2px]",
+  success: "text-[var(--color-success)] font-semibold tracking-[0.2px]",
 };
 
 const variantStyles: Record<string, React.CSSProperties> = {
   primary: {
-    background: 'linear-gradient(135deg, #7c6af7, #9580ff)',
-    boxShadow: '0 4px 16px rgba(124,106,247,0.35), 0 1px 0 rgba(255,255,255,0.15) inset',
-    border: '1px solid rgba(255,255,255,0.15)',
+    background: "linear-gradient(135deg, #3B82F6, #6366F1)",
+    boxShadow: "0 18px 40px rgba(59,130,246,0.22)",
+    border: "1px solid rgba(255,255,255,0.14)",
   },
   secondary: {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "0 14px 30px rgba(15,23,42,0.12)",
   },
   ghost: {
-    background: 'transparent',
-    border: '1px solid transparent',
+    background: "transparent",
+    border: "1px solid transparent",
   },
   danger: {
-    background: 'rgba(239,68,68,0.1)',
-    border: '1px solid rgba(239,68,68,0.2)',
+    background:
+      "linear-gradient(135deg, rgba(239,68,68,0.95), rgba(220,38,38,0.95))",
+    boxShadow: "0 18px 38px rgba(239,68,68,0.2)",
+    border: "1px solid rgba(248,113,113,0.24)",
   },
   success: {
-    background: 'rgba(34,211,160,0.1)',
-    border: '1px solid rgba(34,211,160,0.2)',
+    background:
+      "linear-gradient(135deg, rgba(34,211,160,0.95), rgba(16,185,129,0.95))",
+    boxShadow: "0 18px 32px rgba(34,211,160,0.18)",
+    border: "1px solid rgba(34,211,160,0.18)",
   },
 };
 
 const sizes = {
-  sm: 'px-3 py-1.5 text-xs rounded-lg gap-1.5',
-  md: 'px-4 py-2 text-sm rounded-xl gap-2',
-  lg: 'px-6 py-2.5 text-sm rounded-xl gap-2',
-  icon: 'p-2 rounded-xl',
+  sm: "h-[38px] px-4 text-xs rounded-[14px] gap-[10px]",
+  md: "h-[46px] px-5 text-sm rounded-[14px] gap-[10px]",
+  lg: "h-[46px] px-6 text-sm rounded-[14px] gap-[10px]",
+  icon: "w-[46px] h-[46px] p-0 rounded-full",
 };
 
-export function Button({ variant = 'secondary', size = 'md', loading, children, className, disabled, style, ...props }: ButtonProps) {
+export function Button({
+  variant = "secondary",
+  size = "md",
+  loading,
+  children,
+  className,
+  disabled,
+  style,
+  ...props
+}: ButtonProps) {
   return (
     <motion.button
-      whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
-      whileTap={{ scale: disabled || loading ? 1 : 0.97 }}
+      whileHover={disabled || loading ? undefined : { scale: 1.02, y: -2 }}
+      whileTap={disabled || loading ? undefined : { scale: 0.97 }}
       className={cn(
-        'transition-all duration-150 flex items-center cursor-pointer',
-        'disabled:opacity-40 disabled:cursor-not-allowed',
+        "relative inline-flex items-center justify-center gap-[10px] cursor-pointer select-none",
+        "transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
         variants[variant],
         sizes[size],
-        className
+        className,
       )}
-      style={{ ...variantStyles[variant], ...style }}
+      style={{
+        ...variantStyles[variant],
+        ...style,
+        transition: "all 250ms ease",
+        opacity: disabled ? 0.5 : 1,
+      }}
       disabled={disabled || loading}
       {...(props as any)}
     >
-      {loading ? (
-        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-      ) : children}
+      <span
+        className={cn(
+          "flex items-center justify-center gap-[10px] w-full",
+          loading && "opacity-0",
+        )}
+      >
+        {children}
+      </span>
+      {loading && (
+        <span className="absolute inset-0 flex items-center justify-center">
+          <SkeletonButton className="h-4 w-16 rounded-full" />
+        </span>
+      )}
     </motion.button>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
+import { EmptyState } from "@/components/ui";
 import { Modal } from "@/components/ui/Modal";
 import { CircularProgress } from "@/components/ui/Progress";
 import { Plus, Check, Star, Clock, Trash, Edit } from "lucide-react";
@@ -366,9 +367,14 @@ function ChapterItems({
 
       <div className="space-y-2">
         {chapter.items.length === 0 && (
-          <p className="text-sm text-[var(--color-text-muted)]">
-            No items yet.
-          </p>
+          <div className="py-4">
+            <EmptyState
+              title="No items yet"
+              description="Add your first module item"
+              primaryLabel="Add Item"
+              onPrimary={() => onAddItem("New Item", "Exercise")}
+            />
+          </div>
         )}
         {chapter.items.map((it: ModuleItem) => (
           <div
