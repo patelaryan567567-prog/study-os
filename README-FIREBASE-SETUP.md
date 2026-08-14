@@ -6,8 +6,11 @@ Firebase Setup (StudyOS)
    - Create a Web App in project settings and copy the config values.
 
 2. Firestore
-   - In Firestore -> Create database -> start in production mode or test mode for dev.
-   - You may create security rules later; for dev consider open rules but lock them before production.
+   - In Firestore -> Create database -> start in production mode.
+   - Deploy the security rules in this repo before using the app: `firebase deploy --only firestore:rules`
+   - Never use open/test-mode rules: every user document in `users/{uid}` (and its
+     subcollections) is readable and writable by anyone if rules are open, because the
+     app talks to Firestore directly from the browser.
 
 3. Add config to the project
    - Copy .env.local.example to .env.local

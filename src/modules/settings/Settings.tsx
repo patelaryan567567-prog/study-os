@@ -23,6 +23,36 @@ import { GradientText } from "@/components/ui/GradientText";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/context/ThemeContext";
 
+const BACKUP_KEY_PREFIX = "studyos_";
+const MAX_BACKUP_VALUE_LENGTH = 5_000_000;
+
+/**
+ * Restores only StudyOS-owned string entries so a crafted backup file cannot
+ * overwrite unrelated storage keys or inject non-string payloads.
+ */
+function restoreBackup(raw: string): number {
+  const data: unknown = JSON.parse(raw);
+
+  if (data === null || typeof data !== "object" || Array.isArray(data)) {
+    throw new Error("Backup file must contain a JSON object.");
+  }
+
+  let restored = 0;
+
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    if (!key.startsWith(BACKUP_KEY_PREFIX)) continue;
+    if (typeof value !== "string") continue;
+    if (value.length > MAX_BACKUP_VALUE_LENGTH) continue;
+
+    localStorage.setItem(key, value);
+    restored += 1;
+  }
+
+  if (restored === 0) throw new Error("Backup file contains no StudyOS data.");
+
+  return restored;
+}
+
 export function Settings() {
   const { theme, setTheme } = useTheme();
 
@@ -504,12 +534,11 @@ export function Settings() {
                 const reader = new FileReader();
                 reader.onload = (event) => {
                   try {
-                    const data = JSON.parse(event.target?.result as string);
-                    Object.entries(data).forEach(([key, value]) => {
-                      localStorage.setItem(key, value as string);
-                    });
+                    const restored = restoreBackup(
+                      event.target?.result as string,
+                    );
                     alert(
-                      "Backup restored successfully! Please refresh the page.",
+                      `Backup restored (${restored} setting${restored === 1 ? "" : "s"})! Please refresh the page.`,
                     );
                   } catch {
                     alert("Invalid backup file.");

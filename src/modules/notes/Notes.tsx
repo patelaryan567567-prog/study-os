@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ImageIcon } from "lucide-react";
 import { Plus, Bookmark, Mic, Trash } from "lucide-react";
+import { sanitizeHtml, sanitizeUrl } from "@/utils/sanitize";
 
 type Attachment = {
   id: string;
@@ -43,11 +44,25 @@ function markdownToHtml(md: string) {
   out = out.replace(/\*(.*?)\*/gim, "<em>$1</em>");
   out = out.replace(/`([^`]+)`/gim, "<code>$1</code>");
   out = out.replace(/\n/g, "<br/>");
-  out = out.replace(
-    /\[(.*?)\]\((.*?)\)/gim,
-    '<a href="$2" target="_blank" rel="noreferrer">$1</a>',
-  );
-  return out;
+  out = out.replace(/\[(.*?)\]\((.*?)\)/gim, (_match, label, href) => {
+    const safeHref = sanitizeUrl(String(href));
+    if (!safeHref) return label;
+    return `<a href="${safeHref}" target="_blank" rel="noreferrer noopener">${label}</a>`;
+  });
+  return sanitizeHtml(out);
+}
+
+const ALLOWED_ATTACHMENT_PREFIXES = [
+  "data:image/",
+  "data:application/pdf",
+  "data:audio/",
+  "blob:",
+];
+
+function attachmentSrc(data: string): string {
+  return ALLOWED_ATTACHMENT_PREFIXES.some((prefix) => data.startsWith(prefix))
+    ? data
+    : "";
 }
 
 export function Notes() {
@@ -350,7 +365,9 @@ export function Notes() {
                           content: e.currentTarget.innerHTML,
                         })
                       }
-                      dangerouslySetInnerHTML={{ __html: selected.content }}
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(selected.content),
+                      }}
                     />
                   </div>
                 )}
@@ -398,18 +415,22 @@ export function Notes() {
                         <div>
                           {att.type === "image" && (
                             <img
-                              src={att.data}
+                              src={attachmentSrc(att.data)}
                               alt={att.name}
                               className="max-h-28"
                             />
                           )}
                           {att.type === "pdf" && (
-                            <a href={att.data} target="_blank" rel="noreferrer">
+                            <a
+                              href={attachmentSrc(att.data)}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                            >
                               Open PDF
                             </a>
                           )}
                           {att.type === "voice" && (
-                            <audio controls src={att.data} />
+                            <audio controls src={attachmentSrc(att.data)} />
                           )}
                         </div>
                       </div>
