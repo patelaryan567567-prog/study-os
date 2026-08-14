@@ -1,9 +1,20 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { User as FirebaseUser } from 'firebase/auth';
-import { onAuthStateChanged } from '@/services/auth';
-import { createUserProfileIfNotExists, type UserProfile } from '@/services/firestoreService';
-import { useAppStore } from '@/store';
-import { getLevelFromXP } from '@/utils';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { User as FirebaseUser } from "firebase/auth";
+import { onAuthStateChanged } from "@/services/auth";
+import {
+  createUserProfileIfNotExists,
+  type UserProfile,
+} from "@/services/firestoreService";
+import { useAppStore } from "@/store";
+import { getLevelFromXP } from "@/utils";
+import { getErrorMessage, logError } from "@/utils/errors";
 
 type AuthContextValue = {
   firebaseUser: FirebaseUser | null;
@@ -22,8 +33,12 @@ function toStoreUser(firebaseUser: FirebaseUser, profile: UserProfile) {
 
   return {
     id: firebaseUser.uid,
-    name: profile.displayName ?? firebaseUser.displayName ?? firebaseUser.email?.split('@')[0] ?? 'Student',
-    email: profile.email ?? firebaseUser.email ?? '',
+    name:
+      profile.displayName ??
+      firebaseUser.displayName ??
+      firebaseUser.email?.split("@")[0] ??
+      "Student",
+    email: profile.email ?? firebaseUser.email ?? "",
     avatar: firebaseUser.photoURL ?? undefined,
     xp,
     level: getLevelFromXP(xp),
@@ -42,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    const unsubscribe = onAuthStateChanged(async (nextUser) => {
+    const handleAuthStateChange = async (nextUser: FirebaseUser | null) => {
       if (!active) return;
 
       setFirebaseUser(nextUser);
@@ -65,14 +80,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setError(null);
         }
       } catch (cause) {
+        logError("Unable to load the StudyOS profile", cause);
         if (active) {
           setUser(null);
-          setError(cause instanceof Error ? cause.message : 'Unable to load your StudyOS profile.');
+          setError(
+            getErrorMessage(cause, "Unable to load your StudyOS profile."),
+          );
         }
       } finally {
         if (active) setIsLoading(false);
       }
-    });
+    };
+
+    const handleAuthStateError = (cause: Error) => {
+      logError("Authentication state listener failed", cause);
+      if (!active) return;
+      setFirebaseUser(null);
+      setUser(null);
+      setError(getErrorMessage(cause, "Unable to verify your sign-in status."));
+      setIsLoading(false);
+    };
+
+    const unsubscribe = onAuthStateChanged(
+      handleAuthStateChange,
+      handleAuthStateError,
+    );
 
     return () => {
       active = false;
@@ -90,6 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider.');
+  if (!context) throw new Error("useAuth must be used within AuthProvider.");
   return context;
 }

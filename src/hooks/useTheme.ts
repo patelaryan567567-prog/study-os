@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { readStoredString, writeStoredString } from "@/utils/storage";
 
 type Theme = "dark" | "light";
 
@@ -9,7 +10,7 @@ function getInitialTheme(): Theme {
     return "light";
   }
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const stored = readStoredString(STORAGE_KEY);
   if (stored === "dark" || stored === "light") {
     return stored;
   }
@@ -38,7 +39,7 @@ export function useTheme() {
 
   useEffect(() => {
     applyTheme(theme);
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    writeStoredString(STORAGE_KEY, theme);
   }, [theme]);
 
   const toggleTheme = () => {

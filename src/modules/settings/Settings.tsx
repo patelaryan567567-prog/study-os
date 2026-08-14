@@ -22,37 +22,43 @@ import { AnimatedButton } from "@/components/ui/AnimatedButton";
 import { GradientText } from "@/components/ui/GradientText";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/context/ThemeContext";
+import {
+  readStoredJson,
+  readStoredString,
+  removeStoredKey,
+  writeStoredJson,
+  writeStoredString,
+} from "@/utils/storage";
+import { getErrorMessage, logError, reportError } from "@/utils/errors";
+
+const DEFAULT_NOTIFICATIONS = {
+  desktop: true,
+  browser: true,
+  inApp: true,
+  sound: true,
+};
+
+const DEFAULT_SHORTCUTS = {
+  pomodoro: "⌘ + P",
+  note: "⌘ + N",
+  reminder: "⌘ + R",
+};
 
 export function Settings() {
   const { theme, setTheme } = useTheme();
 
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("studyos_language") || "en";
-  });
-  const [dateFormat, setDateFormat] = useState(() => {
-    return localStorage.getItem("studyos_dateFormat") || "DD/MM/YYYY";
-  });
-  const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem("studyos_notifications");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          desktop: true,
-          browser: true,
-          inApp: true,
-          sound: true,
-        };
-  });
-  const [shortcuts, setShortcuts] = useState(() => {
-    const saved = localStorage.getItem("studyos_shortcuts");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          pomodoro: "⌘ + P",
-          note: "⌘ + N",
-          reminder: "⌘ + R",
-        };
-  });
+  const [language, setLanguage] = useState(
+    () => readStoredString("studyos_language") || "en",
+  );
+  const [dateFormat, setDateFormat] = useState(
+    () => readStoredString("studyos_dateFormat") || "DD/MM/YYYY",
+  );
+  const [notifications, setNotifications] = useState(() =>
+    readStoredJson("studyos_notifications", DEFAULT_NOTIFICATIONS),
+  );
+  const [shortcuts, setShortcuts] = useState(() =>
+    readStoredJson("studyos_shortcuts", DEFAULT_SHORTCUTS),
+  );
   const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
   const [tempShortcuts, setTempShortcuts] = useState(shortcuts);
   const [notificationPermission, setNotificationPermission] = useState<
@@ -68,43 +74,40 @@ export function Settings() {
   }, []);
 
   const saveSettings = () => {
-    localStorage.setItem("studyos_language", language);
-    localStorage.setItem("studyos_dateFormat", dateFormat);
-    localStorage.setItem(
-      "studyos_notifications",
-      JSON.stringify(notifications),
-    );
-    localStorage.setItem("studyos_shortcuts", JSON.stringify(shortcuts));
-    alert("Settings saved successfully!");
+    const saved = [
+      writeStoredString("studyos_language", language),
+      writeStoredString("studyos_dateFormat", dateFormat),
+      writeStoredJson("studyos_notifications", notifications),
+      writeStoredJson("studyos_shortcuts", shortcuts),
+    ].every(Boolean);
+
+    if (saved) alert("Settings saved successfully!");
   };
 
   const resetDefaults = () => {
     setLanguage("en");
     setDateFormat("DD/MM/YYYY");
-    setNotifications({
-      desktop: true,
-      browser: true,
-      inApp: true,
-      sound: true,
-    });
-    const defaultShortcuts = {
-      pomodoro: "⌘ + P",
-      note: "⌘ + N",
-      reminder: "⌘ + R",
-    };
-    setShortcuts(defaultShortcuts);
-    setTempShortcuts(defaultShortcuts);
+    setNotifications(DEFAULT_NOTIFICATIONS);
+    setShortcuts(DEFAULT_SHORTCUTS);
+    setTempShortcuts(DEFAULT_SHORTCUTS);
     setTheme("system");
-    localStorage.removeItem("studyos_language");
-    localStorage.removeItem("studyos_dateFormat");
-    localStorage.removeItem("studyos_notifications");
-    localStorage.removeItem("studyos_shortcuts");
-    localStorage.removeItem("theme");
+    [
+      "studyos_language",
+      "studyos_dateFormat",
+      "studyos_notifications",
+      "studyos_shortcuts",
+      "theme",
+    ].forEach(removeStoredKey);
     alert("Settings reset to defaults!");
   };
 
   const requestNotificationPermission = async () => {
-    if ("Notification" in window) {
+    if (!("Notification" in window)) {
+      alert("Notifications are not supported in this browser.");
+      return;
+    }
+
+    try {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission as "granted" | "denied" | "default");
       if (permission === "granted") {
@@ -114,9 +117,81 @@ export function Settings() {
           "Notification permission denied. Please enable in browser settings.",
         );
       }
-    } else {
-      alert("Notifications are not supported in this browser.");
+    } catch (error) {
+      reportError(
+        "Unable to request notification permission",
+        error,
+        "Notification permission could not be requested.",
+      );
     }
+  };
+
+  const exportBackup = () => {
+    let url: string | null = null;
+    try {
+      const data: Record<string, string | null> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith("studyos_")) {
+          data[key] = localStorage.getItem(key);
+        }
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `studyos-backup-${new Date().toISOString().split("T")[0]}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      if (url) URL.revokeObjectURL(url);
+      reportError(
+        "Unable to export backup",
+        error,
+        "Your backup could not be exported.",
+      );
+    }
+  };
+
+  const restoreBackup = (file: File) => {
+    const reader = new FileReader();
+
+    reader.onerror = () =>
+      reportError(
+        `Unable to read backup file "${file.name}"`,
+        reader.error,
+        "That backup file could not be read.",
+      );
+
+    reader.onload = (event) => {
+      let entries: [string, unknown][];
+
+      try {
+        const data = JSON.parse(String(event.target?.result ?? ""));
+        if (data === null || typeof data !== "object") {
+          throw new Error("Backup must contain a JSON object of settings.");
+        }
+        entries = Object.entries(data as Record<string, unknown>);
+      } catch (error) {
+        logError(`Invalid backup file "${file.name}"`, error);
+        alert(
+          `Invalid backup file: ${getErrorMessage(error, "unreadable JSON")}`,
+        );
+        return;
+      }
+
+      const restored = entries.every(([key, value]) =>
+        writeStoredString(key, String(value)),
+      );
+
+      if (restored) {
+        alert("Backup restored successfully! Please refresh the page.");
+      }
+    };
+
+    reader.readAsText(file);
   };
 
   const toggleNotification = (key: keyof typeof notifications) => {
@@ -469,24 +544,7 @@ export function Settings() {
           <AnimatedButton
             variant="outline"
             className="flex-1"
-            onClick={() => {
-              const data: Record<string, string | null> = {};
-              for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key?.startsWith("studyos_")) {
-                  data[key] = localStorage.getItem(key);
-                }
-              }
-              const blob = new Blob([JSON.stringify(data, null, 2)], {
-                type: "application/json",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `studyos-backup-${new Date().toISOString().split("T")[0]}.json`;
-              a.click();
-              URL.revokeObjectURL(url);
-            }}
+            onClick={exportBackup}
           >
             <Download className="h-4 w-4" />
             Export Backup
@@ -498,24 +556,9 @@ export function Settings() {
               const input = document.createElement("input");
               input.type = "file";
               input.accept = ".json";
-              input.onchange = (e) => {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  try {
-                    const data = JSON.parse(event.target?.result as string);
-                    Object.entries(data).forEach(([key, value]) => {
-                      localStorage.setItem(key, value as string);
-                    });
-                    alert(
-                      "Backup restored successfully! Please refresh the page.",
-                    );
-                  } catch {
-                    alert("Invalid backup file.");
-                  }
-                };
-                reader.readAsText(file);
+              input.onchange = (event) => {
+                const file = (event.target as HTMLInputElement).files?.[0];
+                if (file) restoreBackup(file);
               };
               input.click();
             }}

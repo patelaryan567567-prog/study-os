@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ImageIcon } from "lucide-react";
 import { Plus, Bookmark, Mic, Trash } from "lucide-react";
+import { readStoredJson, writeStoredJson } from "@/utils/storage";
+import { reportError } from "@/utils/errors";
 
 type Attachment = {
   id: string;
@@ -61,20 +63,16 @@ export function Notes() {
   const chunksRef = useRef<BlobPart[]>([]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setNotes(parsed.notes || []);
-        setFolders(parsed.folders || []);
-      }
-    } catch (e) {}
+    const stored = readStoredJson<{ notes?: Note[]; folders?: string[] }>(
+      STORAGE_KEY,
+      {},
+    );
+    setNotes(stored.notes || []);
+    setFolders(stored.folders || []);
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ notes, folders }));
-    } catch (e) {}
+    writeStoredJson(STORAGE_KEY, { notes, folders });
   }, [notes, folders]);
 
   const createNote = (folder?: string) => {
@@ -125,24 +123,33 @@ export function Notes() {
   };
 
   const onImage = async (file: File) => {
-    const data = await fileToDataUrl(file);
     if (!selected) return;
-    const att: Attachment = {
-      id: uid("a_"),
-      type: file.type === "application/pdf" ? "pdf" : "image",
-      name: file.name,
-      data,
-    };
-    updateNote(selected.id, {
-      attachments: [...(selected.attachments || []), att],
-    });
+    try {
+      const data = await fileToDataUrl(file);
+      const att: Attachment = {
+        id: uid("a_"),
+        type: file.type === "application/pdf" ? "pdf" : "image",
+        name: file.name,
+        data,
+      };
+      updateNote(selected.id, {
+        attachments: [...(selected.attachments || []), att],
+      });
+    } catch (error) {
+      reportError(
+        `Unable to attach "${file.name}"`,
+        error,
+        "That file could not be attached. Please try again.",
+      );
+    }
   };
 
   async function fileToDataUrl(file: File) {
     return await new Promise<string>((res, rej) => {
       const r = new FileReader();
       r.onload = () => res(String(r.result));
-      r.onerror = rej;
+      r.onerror = () =>
+        rej(r.error ?? new Error(`Unable to read file "${file.name}".`));
       r.readAsDataURL(file);
     });
   }
@@ -154,10 +161,19 @@ export function Notes() {
       mediaRef.current = mr;
       chunksRef.current = [];
       mr.ondataavailable = (e) => chunksRef.current.push(e.data);
+      mr.onerror = (event) =>
+        reportError(
+          "Voice recording failed",
+          (event as unknown as { error?: unknown }).error ?? event,
+          "Voice recording stopped unexpectedly.",
+        );
       mr.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        const base = await blobToDataURL(blob);
-        if (selected) {
+        stream.getTracks().forEach((track) => track.stop());
+        if (!selected) return;
+        try {
+          const base = await blobToDataURL(
+            new Blob(chunksRef.current, { type: "audio/webm" }),
+          );
           const att: Attachment = {
             id: uid("a_"),
             type: "voice",
@@ -167,12 +183,23 @@ export function Notes() {
           updateNote(selected.id, {
             attachments: [...(selected.attachments || []), att],
           });
+        } catch (error) {
+          reportError(
+            "Unable to save voice recording",
+            error,
+            "The voice recording could not be saved.",
+          );
         }
       };
       mr.start();
       setRecording(true);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      setRecording(false);
+      reportError(
+        "Unable to start voice recording",
+        error,
+        "Recording could not start. Check that microphone access is allowed.",
+      );
     }
   };
 
@@ -188,7 +215,8 @@ export function Notes() {
     return new Promise<string>((res, rej) => {
       const r = new FileReader();
       r.onload = () => res(String(r.result));
-      r.onerror = rej;
+      r.onerror = () =>
+        rej(r.error ?? new Error("Unable to read the recorded audio."));
       r.readAsDataURL(blob);
     });
   }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { CircularProgress } from "@/components/ui/Progress";
+import { readStoredJson, writeStoredJson } from "@/utils/storage";
 
 type Achievement = {
   id: string;
@@ -61,20 +62,13 @@ function levelThreshold(level: number) {
 }
 
 export function Gamification() {
-  const [state, setState] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : defaultState();
-    } catch {
-      return defaultState();
-    }
-  });
+  const [state, setState] = useState(() =>
+    readStoredJson(STORAGE_KEY, defaultState()),
+  );
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {}
+    writeStoredJson(STORAGE_KEY, state);
   }, [state]);
 
   function addXP(amount: number) {

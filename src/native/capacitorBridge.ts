@@ -1,5 +1,6 @@
 // Lightweight Capacitor bridge for web code to call native features when running in a Capacitor app.
 // This file is a safe wrapper: it falls back to web APIs when Capacitor is not available.
+import { logError } from "@/utils/errors";
 
 export async function notifyNative(title: string, body: string) {
   try {
@@ -10,8 +11,8 @@ export async function notifyNative(title: string, body: string) {
       });
       return true;
     }
-  } catch (e) {
-    console.warn("native notify failed", e);
+  } catch (error) {
+    logError("Native notification failed, falling back to the web API", error);
   }
   // fallback to browser Notification
   if ("Notification" in window && Notification.permission === "granted")
@@ -32,8 +33,11 @@ export async function getNetworkStatus() {
       const { Network } = await import("@capacitor/" + "network");
       return await Network.getStatus();
     }
-  } catch (e) {
-    console.warn(e);
+  } catch (error) {
+    logError(
+      "Native network status unavailable, falling back to navigator.onLine",
+      error,
+    );
   }
   return { connected: navigator.onLine, connectionType: "unknown" } as any;
 }
@@ -56,8 +60,8 @@ export async function scheduleLocalReminder(
       });
       return true;
     }
-  } catch (e) {
-    console.warn("scheduleLocalReminder failed", e);
+  } catch (error) {
+    logError("Unable to schedule a native local reminder", error);
   }
   return false;
 }

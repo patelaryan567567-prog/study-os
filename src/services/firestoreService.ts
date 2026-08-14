@@ -202,6 +202,7 @@ export async function getTasksForUser(userId: string): Promise<Task[]> {
 export function subscribeToTasks(
   userId: string,
   callback: (tasks: Task[]) => void,
+  onError?: (error: Error) => void,
 ): Unsubscribe {
   return onSnapshot(
     query(tasksCollectionRef(userId), orderBy("createdAt", "desc")),
@@ -212,6 +213,7 @@ export function subscribeToTasks(
         ),
       );
     },
+    onError,
   );
 }
 

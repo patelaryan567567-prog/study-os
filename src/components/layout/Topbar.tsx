@@ -18,6 +18,7 @@ import { formatTime } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/utils";
 import { useTheme } from "@/context/ThemeContext";
+import { reportError } from "@/utils/errors";
 
 interface TopbarProps {
   title: string;
@@ -139,9 +140,16 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
   }
 
   function toggleFullscreen() {
+    const onFailure = (error: unknown) =>
+      reportError(
+        "Unable to toggle fullscreen",
+        error,
+        "Fullscreen is not available in this browser window.",
+      );
+
     if (!document.fullscreenElement)
-      document.documentElement.requestFullscreen().catch(() => {});
-    else document.exitFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(onFailure);
+    else document.exitFullscreen().catch(onFailure);
   }
 
   const panelStyle: React.CSSProperties = {

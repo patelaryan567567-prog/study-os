@@ -71,8 +71,9 @@ export async function updateDisplayName(displayName: string): Promise<void> {
 
 export function onAuthStateChanged(
   callback: (user: User) => void,
+  onError?: (error: Error) => void,
 ): Unsubscribe {
-  return observeFirebaseAuthState(getAuthService(), callback);
+  return observeFirebaseAuthState(getAuthService(), callback, onError);
 }
 
 export function getCurrentUser(): User {

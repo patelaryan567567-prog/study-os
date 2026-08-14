@@ -8,6 +8,7 @@ import { signOut, updateDisplayName } from '@/services/auth';
 import { updateUserProfile } from '@/services/firestoreService';
 import { useAppStore } from '@/store';
 import { getXPProgress } from '@/utils';
+import { getErrorMessage, logError } from '@/utils/errors';
 
 export function UserProfile() {
   const { user, setUser } = useAppStore();
@@ -34,7 +35,8 @@ export function UserProfile() {
       setUser({ ...user, name: name.trim() });
       setMessage('Profile updated.');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to update your profile.');
+      logError('Unable to update the user profile', cause);
+      setError(getErrorMessage(cause, 'Unable to update your profile.'));
     } finally {
       setSaving(false);
     }
@@ -45,7 +47,8 @@ export function UserProfile() {
     try {
       await signOut();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to sign out.');
+      logError('Sign out failed', cause);
+      setError(getErrorMessage(cause, 'Unable to sign out.'));
     }
   }
 

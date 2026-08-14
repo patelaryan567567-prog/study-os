@@ -15,6 +15,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { getFirebaseConfig, getFirebaseEmulatorConfig } from "./firebaseConfig";
+import { logError } from "@/utils/errors";
 
 export type FirebaseInstances = {
   app: FirebaseApp;
@@ -33,16 +34,20 @@ export function initializeFirebase(): FirebaseInstances {
   let auth: Auth;
   try {
     auth = initializeAuth(app, { persistence: browserLocalPersistence });
-  } catch {
+  } catch (error) {
+    logError("Falling back to the default Firebase auth instance", error);
     auth = getAuth(app);
   }
 
   let db: Firestore;
   try {
     db = initializeFirestore(app, {
-      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
     });
-  } catch {
+  } catch (error) {
+    logError("Falling back to Firestore without offline persistence", error);
     db = getFirestore(app);
   }
 

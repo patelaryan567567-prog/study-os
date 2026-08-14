@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { CircularProgress } from "@/components/ui/Progress";
 import { Plus, Check, Clock, Trash, Edit } from "lucide-react";
 import { motion } from "framer-motion";
+import { readStoredJson, writeStoredJson } from "@/utils/storage";
 
 type BacklogItem = {
   id: string;
@@ -36,16 +37,11 @@ export function BacklogManager() {
   const [notesValue, setNotesValue] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch (e) {}
+    setItems(readStoredJson<BacklogItem[]>(STORAGE_KEY, []));
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch (e) {}
+    writeStoredJson(STORAGE_KEY, items);
   }, [items]);
 
   const addItem = () => {

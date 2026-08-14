@@ -15,6 +15,7 @@ import {
   signInWithGooglePopup,
   signUpWithEmail,
 } from "@/services/auth";
+import { logError } from "@/utils/errors";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -61,6 +62,10 @@ export function LoginPage() {
         await signInWithEmail(email, password);
       }
     } catch (cause) {
+      logError(
+        isSignUp ? "Email sign-up failed" : "Email sign-in failed",
+        cause,
+      );
       setError(getErrorMessage(cause));
     } finally {
       setLoading(false);
@@ -75,6 +80,7 @@ export function LoginPage() {
     try {
       await signInWithGooglePopup();
     } catch (cause) {
+      logError("Google sign-in failed", cause);
       setError(getErrorMessage(cause));
     } finally {
       setLoading(false);
@@ -89,6 +95,7 @@ export function LoginPage() {
       await requestPasswordReset(email);
       setMessage("Password reset instructions have been sent to your email.");
     } catch (cause) {
+      logError("Password reset request failed", cause);
       setError(getErrorMessage(cause));
     }
   }

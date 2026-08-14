@@ -6,6 +6,8 @@ import { EmptyState } from "@/components/ui";
 import { CircularProgress } from "@/components/ui/Progress";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Timer } from "lucide-react";
+import { readStoredJson, writeStoredJson } from "@/utils/storage";
+import { logError, reportError } from "@/utils/errors";
 
 type Mode = "pomodoro" | "countdown" | "stopwatch" | "alarm";
 
@@ -37,19 +39,12 @@ export function FocusMode() {
   );
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const [history, setHistory] = useState<any[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw).history || [] : [];
-    } catch {
-      return [];
-    }
-  });
+  const [history, setHistory] = useState<any[]>(
+    () => readStoredJson<{ history?: any[] }>(STORAGE_KEY, {}).history || [],
+  );
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ history }));
-    } catch {}
+    writeStoredJson(STORAGE_KEY, { history });
   }, [history]);
 
   // Timer interval
@@ -126,7 +121,13 @@ export function FocusMode() {
       const a = new Audio(src);
       a.loop = true;
       a.volume = 0.45;
-      a.play().catch(() => {});
+      a.play().catch((error) =>
+        reportError(
+          "Ambient audio playback failed",
+          error,
+          "Ambient sound could not start. Interact with the page or check your connection.",
+        ),
+      );
       audioRef.current = a;
     }
     return () => {
@@ -152,9 +153,15 @@ export function FocusMode() {
       o.start();
       setTimeout(() => {
         o.stop();
-        ctx.close();
+        void ctx
+          .close()
+          .catch((error) =>
+            logError("Unable to close the beep audio context", error),
+          );
       }, 800);
-    } catch {}
+    } catch (error) {
+      logError("Unable to play the session-end beep", error);
+    }
   }
 
   function recordSession() {
@@ -181,7 +188,13 @@ export function FocusMode() {
         await document.documentElement.requestFullscreen();
       else await document.exitFullscreen();
       // update fullscreen state not required
-    } catch {}
+    } catch (error) {
+      reportError(
+        "Unable to toggle fullscreen",
+        error,
+        "Fullscreen is not available in this browser window.",
+      );
+    }
   };
 
   const formatted = (s: number) => {

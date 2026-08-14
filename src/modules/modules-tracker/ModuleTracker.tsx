@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/Modal";
 import { CircularProgress } from "@/components/ui/Progress";
 import { Plus, Check, Star, Clock, Trash, Edit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { readStoredJson, writeStoredJson } from "@/utils/storage";
 
 type ItemType = "Exercise" | "DPP" | "PYQ" | "Revision" | "Assignment";
 type ItemStatus = "pending" | "completed" | "skipped";
@@ -47,16 +48,11 @@ export function ModuleTracker() {
   } | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setChapters(JSON.parse(raw));
-    } catch (e) {}
+    setChapters(readStoredJson<Chapter[]>(STORAGE_KEY, []));
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(chapters));
-    } catch (e) {}
+    writeStoredJson(STORAGE_KEY, chapters);
   }, [chapters]);
 
   const addChapter = () => {

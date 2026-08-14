@@ -4,6 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastContainer } from "@/components/ui/Toast";
+import { ErrorBoundary } from "@/components/common";
 import { Dashboard } from "@/modules/dashboard/Dashboard";
 import { Settings } from "@/modules/settings/Settings";
 import { TaskManager } from "@/modules/tasks/TaskManager";
@@ -41,49 +42,51 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route
-                path="focus"
-                element={
-                  <Suspense fallback={loadingFallback}>
-                    <Focus />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="planner"
-                element={
-                  <Suspense fallback={loadingFallback}>
-                    <Planner />
-                  </Suspense>
-                }
-              />
-              <Route path="tasks" element={<TaskManager />} />
-              <Route path="lectures" element={<Lectures />} />
-              <Route
-                path="modules"
-                element={
-                  <Suspense fallback={loadingFallback}>
-                    <Modules />
-                  </Suspense>
-                }
-              />
-              <Route path="analytics" element={<Analytics />} />
-              <Route
-                path="achievements"
-                element={
-                  <Suspense fallback={loadingFallback}>
-                    <Achievements />
-                  </Suspense>
-                }
-              />
-              <Route path="calendar" element={<Calendar />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route
+                  path="focus"
+                  element={
+                    <Suspense fallback={loadingFallback}>
+                      <Focus />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="planner"
+                  element={
+                    <Suspense fallback={loadingFallback}>
+                      <Planner />
+                    </Suspense>
+                  }
+                />
+                <Route path="tasks" element={<TaskManager />} />
+                <Route path="lectures" element={<Lectures />} />
+                <Route
+                  path="modules"
+                  element={
+                    <Suspense fallback={loadingFallback}>
+                      <Modules />
+                    </Suspense>
+                  }
+                />
+                <Route path="analytics" element={<Analytics />} />
+                <Route
+                  path="achievements"
+                  element={
+                    <Suspense fallback={loadingFallback}>
+                      <Achievements />
+                    </Suspense>
+                  }
+                />
+                <Route path="calendar" element={<Calendar />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </ErrorBoundary>
           <ToastContainer />
         </AuthProvider>
       </ThemeProvider>

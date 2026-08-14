@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { readStoredJson, writeStoredJson } from "@/utils/storage";
+import { logError } from "@/utils/errors";
 
 type Reminder = {
   id: string;
@@ -20,18 +22,9 @@ function uid(prefix = "") {
   return prefix + Math.random().toString(36).slice(2, 9);
 }
 
-function readJSON(key: string) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function SmartReminder() {
-  const [reminders, setReminders] = useState<Reminder[]>(
-    () => readJSON(STORAGE_KEY) || [],
+  const [reminders, setReminders] = useState<Reminder[]>(() =>
+    readStoredJson<Reminder[]>(STORAGE_KEY, []),
   );
   const [type, setType] = useState<Reminder["type"]>("lecture");
   const [title, setTitle] = useState("");
@@ -39,14 +32,14 @@ export function SmartReminder() {
   const [repeat, setRepeat] = useState<Reminder["repeat"]>("none");
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reminders));
-    } catch {}
+    writeStoredJson(STORAGE_KEY, reminders);
   }, [reminders]);
 
   useEffect(() => {
     if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission().catch(() => {});
+      Notification.requestPermission().catch((error) =>
+        logError("Unable to request notification permission", error),
+      );
     }
   }, []);
 
@@ -113,7 +106,12 @@ export function SmartReminder() {
               return { ...r, notified: true };
             }
           }
-        } catch (e) {}
+        } catch (error) {
+          logError(
+            `Skipping reminder "${r.title}" with an unusable time`,
+            error,
+          );
+        }
         return r;
       }),
     );
@@ -121,14 +119,17 @@ export function SmartReminder() {
 
   // aggregate possible targets from other modules (lecture/module/task)
   const lectures = useMemo(
-    () => readJSON("studyos_lecture_tracker_v1") || [],
+    () => readStoredJson<unknown[]>("studyos_lecture_tracker_v1", []),
     [],
   );
   const modules = useMemo(
-    () => readJSON("studyos_module_tracker_v1") || [],
+    () => readStoredJson<unknown[]>("studyos_module_tracker_v1", []),
     [],
   );
-  const tasks = useMemo(() => readJSON("studyos_tasks_v1") || [], []);
+  const tasks = useMemo(
+    () => readStoredJson<unknown[]>("studyos_tasks_v1", []),
+    [],
+  );
 
   return (
     <div className="space-y-6">

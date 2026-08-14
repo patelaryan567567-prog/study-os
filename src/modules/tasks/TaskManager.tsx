@@ -18,6 +18,7 @@ import { GradientText } from "@/components/ui/GradientText";
 import { cn } from "@/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { updateTask, awardUserRewards } from "@/services/firestoreService";
+import { reportError } from "@/utils/errors";
 
 interface Task {
   id: string;
@@ -72,6 +73,7 @@ export function TaskManager() {
   const { firebaseUser } = useAuth();
 
   const toggleTask = async (id: string) => {
+    const previousTasks = tasks;
     const nextTasks = tasks.map((task) =>
       task.id === id ? { ...task, completed: !task.completed } : task,
     );
@@ -83,16 +85,18 @@ export function TaskManager() {
     try {
       await updateTask(firebaseUser.uid, id, {
         completed: updatedTask.completed,
-        completedAt: updatedTask.completed
-          ? new Date().toISOString()
-          : undefined,
       });
 
       if (updatedTask.completed) {
         await awardUserRewards(firebaseUser.uid, 10, 0);
       }
     } catch (error) {
-      console.error("Failed to persist task completion:", error);
+      setTasks(previousTasks);
+      reportError(
+        `Unable to save task "${updatedTask.title}"`,
+        error,
+        "That task change could not be saved. Please try again.",
+      );
     }
   };
 

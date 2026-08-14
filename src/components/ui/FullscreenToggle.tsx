@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Maximize, Minimize } from "lucide-react";
 import { motion } from "framer-motion";
+import { reportError } from "@/utils/errors";
 
 export function FullscreenToggle() {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -22,8 +23,12 @@ export function FullscreenToggle() {
       } else {
         await document.exitFullscreen();
       }
-    } catch (err) {
-      console.error("Fullscreen error:", err);
+    } catch (error) {
+      reportError(
+        "Unable to toggle fullscreen",
+        error,
+        "Fullscreen is not available in this browser window.",
+      );
     }
   };
 
