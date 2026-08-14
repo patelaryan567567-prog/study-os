@@ -6,14 +6,11 @@ import { EmptyState } from "@/components/ui";
 import { CircularProgress } from "@/components/ui/Progress";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Timer } from "lucide-react";
+import { createId, readJSON, writeJSON } from "@/utils";
 
 type Mode = "pomodoro" | "countdown" | "stopwatch" | "alarm";
 
 const STORAGE_KEY = "studyos_focus_v1";
-
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
-}
 
 export function FocusMode() {
   const [mode, setMode] = useState<Mode>("pomodoro");
@@ -37,19 +34,12 @@ export function FocusMode() {
   );
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const [history, setHistory] = useState<any[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw).history || [] : [];
-    } catch {
-      return [];
-    }
-  });
+  const [history, setHistory] = useState<any[]>(
+    () => readJSON<{ history?: any[] }>(STORAGE_KEY, {}).history ?? [],
+  );
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ history }));
-    } catch {}
+    writeJSON(STORAGE_KEY, { history });
   }, [history]);
 
   // Timer interval
@@ -159,7 +149,7 @@ export function FocusMode() {
 
   function recordSession() {
     const entry = {
-      id: uid("sess_"),
+      id: createId("sess_"),
       mode,
       start: new Date().toISOString(),
       duration:

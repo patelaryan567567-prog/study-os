@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { createId, readJSON, writeJSON } from "@/utils";
 
 type Reminder = {
   id: string;
@@ -16,22 +17,9 @@ type Reminder = {
 
 const STORAGE_KEY = "studyos_reminders_v1";
 
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
-}
-
-function readJSON(key: string) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function SmartReminder() {
-  const [reminders, setReminders] = useState<Reminder[]>(
-    () => readJSON(STORAGE_KEY) || [],
+  const [reminders, setReminders] = useState<Reminder[]>(() =>
+    readJSON<Reminder[]>(STORAGE_KEY, []),
   );
   const [type, setType] = useState<Reminder["type"]>("lecture");
   const [title, setTitle] = useState("");
@@ -39,9 +27,7 @@ export function SmartReminder() {
   const [repeat, setRepeat] = useState<Reminder["repeat"]>("none");
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reminders));
-    } catch {}
+    writeJSON(STORAGE_KEY, reminders);
   }, [reminders]);
 
   useEffect(() => {
@@ -60,7 +46,7 @@ export function SmartReminder() {
   function saveReminder() {
     if (!time) return;
     const r: Reminder = {
-      id: uid("r_"),
+      id: createId("r_"),
       type,
       title: title || `${type} reminder`,
       time: new Date(time).toISOString(),
@@ -113,7 +99,7 @@ export function SmartReminder() {
               return { ...r, notified: true };
             }
           }
-        } catch (e) {}
+        } catch {}
         return r;
       }),
     );
@@ -121,14 +107,14 @@ export function SmartReminder() {
 
   // aggregate possible targets from other modules (lecture/module/task)
   const lectures = useMemo(
-    () => readJSON("studyos_lecture_tracker_v1") || [],
+    () => readJSON<unknown[]>("studyos_lecture_tracker_v1", []),
     [],
   );
   const modules = useMemo(
-    () => readJSON("studyos_module_tracker_v1") || [],
+    () => readJSON<unknown[]>("studyos_module_tracker_v1", []),
     [],
   );
-  const tasks = useMemo(() => readJSON("studyos_tasks_v1") || [], []);
+  const tasks = useMemo(() => readJSON<unknown[]>("studyos_tasks_v1", []), []);
 
   return (
     <div className="space-y-6">
@@ -187,9 +173,9 @@ export function SmartReminder() {
         <Card padding="md">
           <h4 className="font-semibold">Quick Targets</h4>
           <div className="mt-3 space-y-2 text-sm text-[var(--color-text-muted)]">
-            <div>Lectures: {(lectures || []).length}</div>
-            <div>Modules: {(modules || []).length}</div>
-            <div>Tasks: {(tasks || []).length}</div>
+            <div>Lectures: {lectures.length}</div>
+            <div>Modules: {modules.length}</div>
+            <div>Tasks: {tasks.length}</div>
           </div>
         </Card>
 

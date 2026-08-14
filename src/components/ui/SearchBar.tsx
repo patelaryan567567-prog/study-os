@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 interface SearchBarProps {
   onSearch?: (query: string) => void;

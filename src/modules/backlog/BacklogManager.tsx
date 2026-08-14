@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { CircularProgress } from "@/components/ui/Progress";
 import { Plus, Check, Clock, Trash, Edit } from "lucide-react";
 import { motion } from "framer-motion";
+import { createId, readJSON, writeJSON } from "@/utils";
 
 type BacklogItem = {
   id: string;
@@ -21,10 +22,6 @@ type BacklogItem = {
 
 const STORAGE_KEY = "studyos_backlog_v1";
 
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
-}
-
 export function BacklogManager() {
   const [items, setItems] = useState<BacklogItem[]>([]);
   const [chapter, setChapter] = useState("");
@@ -36,22 +33,17 @@ export function BacklogManager() {
   const [notesValue, setNotesValue] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch (e) {}
+    setItems(readJSON<BacklogItem[]>(STORAGE_KEY, []));
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch (e) {}
+    writeJSON(STORAGE_KEY, items);
   }, [items]);
 
   const addItem = () => {
     if (!title.trim()) return;
     const it: BacklogItem = {
-      id: uid("b_"),
+      id: createId("b_"),
       chapter: chapter.trim() || undefined,
       title: title.trim(),
       dueDate: dueDate || null,

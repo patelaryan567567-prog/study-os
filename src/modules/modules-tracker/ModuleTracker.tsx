@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/Modal";
 import { CircularProgress } from "@/components/ui/Progress";
 import { Plus, Check, Star, Clock, Trash, Edit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createId, readJSON, writeJSON } from "@/utils";
 
 type ItemType = "Exercise" | "DPP" | "PYQ" | "Revision" | "Assignment";
 type ItemStatus = "pending" | "completed" | "skipped";
@@ -29,10 +30,6 @@ type Chapter = {
 
 const STORAGE_KEY = "studyos_module_tracker_v1";
 
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
-}
-
 export function ModuleTracker() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [newChapter, setNewChapter] = useState("");
@@ -47,23 +44,18 @@ export function ModuleTracker() {
   } | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setChapters(JSON.parse(raw));
-    } catch (e) {}
+    setChapters(readJSON<Chapter[]>(STORAGE_KEY, []));
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(chapters));
-    } catch (e) {}
+    writeJSON(STORAGE_KEY, chapters);
   }, [chapters]);
 
   const addChapter = () => {
     if (!newChapter.trim()) return;
     setChapters((s) => [
       ...s,
-      { id: uid("chap_"), name: newChapter.trim(), items: [] },
+      { id: createId("chap_"), name: newChapter.trim(), items: [] },
     ]);
     setNewChapter("");
   };
@@ -78,7 +70,7 @@ export function ModuleTracker() {
               items: [
                 ...c.items,
                 {
-                  id: uid("itm_"),
+                  id: createId("itm_"),
                   title: title.trim(),
                   type,
                   status: "pending",

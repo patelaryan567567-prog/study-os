@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export * from "./storage";
+export * from "./badgeTones";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -44,8 +47,12 @@ export function getProgressColor(percent: number): string {
   return "#ef4444";
 }
 
+export function createId(prefix = ""): string {
+  return prefix + Math.random().toString(36).slice(2, 9);
+}
+
 export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `${Date.now()}-${createId()}`;
 }
 
 export function isToday(dateStr: string): boolean {

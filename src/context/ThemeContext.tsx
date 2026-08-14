@@ -5,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { readString, writeString } from "@/utils";
 
 type Theme = "dark" | "light" | "system";
 
@@ -22,7 +23,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       return "system";
     }
 
-    const saved = window.localStorage.getItem("theme") as Theme | null;
+    const saved = readString("theme", "system") as Theme;
     return saved === "dark" || saved === "light" || saved === "system"
       ? saved
       : "system";
@@ -50,7 +51,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     };
 
     applyTheme();
-    window.localStorage.setItem("theme", theme);
+    writeString("theme", theme);
 
     const handler = () => applyTheme();
     mediaQuery.addEventListener("change", handler);

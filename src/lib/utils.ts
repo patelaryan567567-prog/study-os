@@ -1,9 +1,4 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "@/utils";
 
 export const getTextColor = (theme: "light" | "dark") => {
   return theme === "dark" ? "text-gray-100" : "text-gray-900";

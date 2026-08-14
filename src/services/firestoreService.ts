@@ -12,6 +12,8 @@ import {
   query,
   setDoc,
   updateDoc,
+  type DocumentData,
+  type QuerySnapshot,
   type Unsubscribe,
 } from "firebase/firestore";
 import { getFirebaseInstances } from "./initFirebase";
@@ -156,142 +158,99 @@ export function subscribeToUserProfile(
   );
 }
 
-export function tasksCollectionRef(userId: string) {
-  return collection(getDB(), "users", userId, "tasks");
+type Entity = { userId: string };
+
+interface SubcollectionOptions {
+  orderByField?: string;
+  trackUpdatedAt?: boolean;
 }
 
-export async function addTask(
-  task: Omit<Task, "id" | "createdAt" | "updatedAt">,
-): Promise<string> {
-  const now = Timestamp.now();
-  const reference = await addDoc(tasksCollectionRef(task.userId), {
-    ...task,
-    createdAt: now,
-    updatedAt: now,
-  });
-  return reference.id;
-}
+function subcollection<T extends Entity>(
+  name: string,
+  {
+    orderByField = "createdAt",
+    trackUpdatedAt = true,
+  }: SubcollectionOptions = {},
+) {
+  const ref = (userId: string) => collection(getDB(), "users", userId, name);
+  const ordered = (userId: string) =>
+    query(ref(userId), orderBy(orderByField, "desc"));
+  const mapDocs = (snapshots: QuerySnapshot<DocumentData>) =>
+    snapshots.docs.map((snapshot) => withId(snapshot.id, snapshot.data() as T));
 
-export async function updateTask(
-  userId: string,
-  taskId: string,
-  patch: Partial<Omit<Task, "id" | "userId">>,
-): Promise<void> {
-  await updateDoc(doc(tasksCollectionRef(userId), taskId), {
-    ...patch,
-    updatedAt: Timestamp.now(),
-  });
-}
-
-export async function deleteTask(
-  userId: string,
-  taskId: string,
-): Promise<void> {
-  await deleteDoc(doc(tasksCollectionRef(userId), taskId));
-}
-
-export async function getTasksForUser(userId: string): Promise<Task[]> {
-  const snapshots = await getDocs(
-    query(tasksCollectionRef(userId), orderBy("createdAt", "desc")),
-  );
-  return snapshots.docs.map((snapshot) =>
-    withId(snapshot.id, snapshot.data() as Task),
-  );
-}
-
-export function subscribeToTasks(
-  userId: string,
-  callback: (tasks: Task[]) => void,
-): Unsubscribe {
-  return onSnapshot(
-    query(tasksCollectionRef(userId), orderBy("createdAt", "desc")),
-    (snapshots) => {
-      callback(
-        snapshots.docs.map((snapshot) =>
-          withId(snapshot.id, snapshot.data() as Task),
-        ),
+  return {
+    ref,
+    async add(
+      value: Omit<T, "id" | "createdAt" | "updatedAt">,
+    ): Promise<string> {
+      const now = Timestamp.now();
+      const created = await addDoc(ref((value as Entity).userId), {
+        ...value,
+        createdAt: now,
+        ...(trackUpdatedAt ? { updatedAt: now } : {}),
+      });
+      return created.id;
+    },
+    async update(
+      userId: string,
+      id: string,
+      patch: Partial<Omit<T, "id" | "userId">>,
+    ): Promise<void> {
+      await updateDoc(doc(ref(userId), id), {
+        ...patch,
+        ...(trackUpdatedAt ? { updatedAt: Timestamp.now() } : {}),
+      });
+    },
+    async remove(userId: string, id: string): Promise<void> {
+      await deleteDoc(doc(ref(userId), id));
+    },
+    async list(userId: string): Promise<(T & { id: string })[]> {
+      return mapDocs(await getDocs(ordered(userId)));
+    },
+    subscribe(
+      userId: string,
+      callback: (values: (T & { id: string })[]) => void,
+      onError?: (error: Error) => void,
+    ): Unsubscribe {
+      return onSnapshot(
+        ordered(userId),
+        (snapshots) => callback(mapDocs(snapshots)),
+        onError,
       );
     },
-  );
+  };
 }
 
-export function lecturesCollectionRef(userId: string) {
-  return collection(getDB(), "users", userId, "lectures");
-}
+const tasks = subcollection<Task>("tasks");
+const lectures = subcollection<Lecture>("lectures");
+const studySessions = subcollection<StudySession>("studySessions", {
+  orderByField: "startedAt",
+  trackUpdatedAt: false,
+});
+const analytics = subcollection<Entity & Record<string, unknown>>("analytics", {
+  trackUpdatedAt: false,
+});
 
-export function studySessionsCollectionRef(userId: string) {
-  return collection(getDB(), "users", userId, "studySessions");
-}
+export const tasksCollectionRef = tasks.ref;
+export const lecturesCollectionRef = lectures.ref;
+export const studySessionsCollectionRef = studySessions.ref;
 
-export async function addStudySession(
-  session: Omit<StudySession, "id" | "createdAt">,
-): Promise<string> {
-  const reference = await addDoc(studySessionsCollectionRef(session.userId), {
-    ...session,
-    createdAt: Timestamp.now(),
-  });
-  return reference.id;
-}
+export const addTask = tasks.add;
+export const updateTask = tasks.update;
+export const deleteTask = tasks.remove;
+export const getTasksForUser = tasks.list;
+export const subscribeToTasks = tasks.subscribe;
 
-export function subscribeToStudySessions(
-  userId: string,
-  callback: (sessions: StudySession[]) => void,
-  onError?: (error: Error) => void,
-): Unsubscribe {
-  return onSnapshot(
-    query(studySessionsCollectionRef(userId), orderBy("startedAt", "desc")),
-    (snapshots) =>
-      callback(
-        snapshots.docs.map((snapshot) =>
-          withId(snapshot.id, snapshot.data() as StudySession),
-        ),
-      ),
-    onError,
-  );
-}
+export const addLecture = lectures.add;
+export const updateLecture = lectures.update;
+export const getLecturesForUser = lectures.list;
 
-export async function addLecture(
-  lecture: Omit<Lecture, "id" | "createdAt" | "updatedAt">,
-): Promise<string> {
-  const now = Timestamp.now();
-  const reference = await addDoc(lecturesCollectionRef(lecture.userId), {
-    ...lecture,
-    createdAt: now,
-    updatedAt: now,
-  });
-  return reference.id;
-}
-
-export async function updateLecture(
-  userId: string,
-  lectureId: string,
-  patch: Partial<Omit<Lecture, "id" | "userId">>,
-): Promise<void> {
-  await updateDoc(doc(lecturesCollectionRef(userId), lectureId), {
-    ...patch,
-    updatedAt: Timestamp.now(),
-  });
-}
-
-export async function getLecturesForUser(userId: string): Promise<Lecture[]> {
-  const snapshots = await getDocs(
-    query(lecturesCollectionRef(userId), orderBy("createdAt", "desc")),
-  );
-  return snapshots.docs.map((snapshot) =>
-    withId(snapshot.id, snapshot.data() as Lecture),
-  );
-}
+export const addStudySession = studySessions.add;
+export const subscribeToStudySessions = studySessions.subscribe;
 
 export async function addAnalyticsEvent(
   userId: string,
   event: Record<string, unknown>,
 ): Promise<string> {
-  const reference = await addDoc(
-    collection(getDB(), "users", userId, "analytics"),
-    {
-      ...event,
-      createdAt: Timestamp.now(),
-    },
-  );
-  return reference.id;
+  return analytics.add({ ...event, userId });
 }

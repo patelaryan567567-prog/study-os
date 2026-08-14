@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ImageIcon } from "lucide-react";
 import { Plus, Bookmark, Mic, Trash } from "lucide-react";
+import { createId, readJSON, writeJSON } from "@/utils";
 
 type Attachment = {
   id: string;
@@ -25,10 +26,6 @@ type Note = {
 };
 
 const STORAGE_KEY = "studyos_notes_v1";
-
-function uid(prefix = "") {
-  return prefix + Math.random().toString(36).slice(2, 9);
-}
 
 function markdownToHtml(md: string) {
   // Minimal markdown -> HTML for basic support
@@ -61,25 +58,21 @@ export function Notes() {
   const chunksRef = useRef<BlobPart[]>([]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setNotes(parsed.notes || []);
-        setFolders(parsed.folders || []);
-      }
-    } catch (e) {}
+    const saved = readJSON<{ notes?: Note[]; folders?: string[] }>(
+      STORAGE_KEY,
+      {},
+    );
+    setNotes(saved.notes ?? []);
+    setFolders(saved.folders ?? []);
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ notes, folders }));
-    } catch (e) {}
+    writeJSON(STORAGE_KEY, { notes, folders });
   }, [notes, folders]);
 
   const createNote = (folder?: string) => {
     const n: Note = {
-      id: uid("n_"),
+      id: createId("n_"),
       title: "Untitled",
       content: "",
       mode: "markdown",
@@ -128,7 +121,7 @@ export function Notes() {
     const data = await fileToDataUrl(file);
     if (!selected) return;
     const att: Attachment = {
-      id: uid("a_"),
+      id: createId("a_"),
       type: file.type === "application/pdf" ? "pdf" : "image",
       name: file.name,
       data,
@@ -159,7 +152,7 @@ export function Notes() {
         const base = await blobToDataURL(blob);
         if (selected) {
           const att: Attachment = {
-            id: uid("a_"),
+            id: createId("a_"),
             type: "voice",
             name: `voice-${new Date().toISOString()}.webm`,
             data: base,

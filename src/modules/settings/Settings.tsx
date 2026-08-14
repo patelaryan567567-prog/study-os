@@ -19,40 +19,45 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AnimatedButton } from "@/components/ui/AnimatedButton";
-import { GradientText } from "@/components/ui/GradientText";
-import { cn } from "@/lib/utils";
+import { ModuleShell } from "@/components/layout/ModuleShell";
+import {
+  cn,
+  readJSON,
+  readString,
+  removeKeys,
+  writeJSON,
+  writeString,
+} from "@/utils";
 import { useTheme } from "@/context/ThemeContext";
+
+const DEFAULT_NOTIFICATIONS = {
+  desktop: true,
+  browser: true,
+  inApp: true,
+  sound: true,
+};
+
+const DEFAULT_SHORTCUTS = {
+  pomodoro: "⌘ + P",
+  note: "⌘ + N",
+  reminder: "⌘ + R",
+};
 
 export function Settings() {
   const { theme, setTheme } = useTheme();
 
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("studyos_language") || "en";
-  });
-  const [dateFormat, setDateFormat] = useState(() => {
-    return localStorage.getItem("studyos_dateFormat") || "DD/MM/YYYY";
-  });
-  const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem("studyos_notifications");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          desktop: true,
-          browser: true,
-          inApp: true,
-          sound: true,
-        };
-  });
-  const [shortcuts, setShortcuts] = useState(() => {
-    const saved = localStorage.getItem("studyos_shortcuts");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          pomodoro: "⌘ + P",
-          note: "⌘ + N",
-          reminder: "⌘ + R",
-        };
-  });
+  const [language, setLanguage] = useState(() =>
+    readString("studyos_language", "en"),
+  );
+  const [dateFormat, setDateFormat] = useState(() =>
+    readString("studyos_dateFormat", "DD/MM/YYYY"),
+  );
+  const [notifications, setNotifications] = useState(() =>
+    readJSON("studyos_notifications", DEFAULT_NOTIFICATIONS),
+  );
+  const [shortcuts, setShortcuts] = useState(() =>
+    readJSON("studyos_shortcuts", DEFAULT_SHORTCUTS),
+  );
   const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
   const [tempShortcuts, setTempShortcuts] = useState(shortcuts);
   const [notificationPermission, setNotificationPermission] = useState<
@@ -68,38 +73,27 @@ export function Settings() {
   }, []);
 
   const saveSettings = () => {
-    localStorage.setItem("studyos_language", language);
-    localStorage.setItem("studyos_dateFormat", dateFormat);
-    localStorage.setItem(
-      "studyos_notifications",
-      JSON.stringify(notifications),
-    );
-    localStorage.setItem("studyos_shortcuts", JSON.stringify(shortcuts));
+    writeString("studyos_language", language);
+    writeString("studyos_dateFormat", dateFormat);
+    writeJSON("studyos_notifications", notifications);
+    writeJSON("studyos_shortcuts", shortcuts);
     alert("Settings saved successfully!");
   };
 
   const resetDefaults = () => {
     setLanguage("en");
     setDateFormat("DD/MM/YYYY");
-    setNotifications({
-      desktop: true,
-      browser: true,
-      inApp: true,
-      sound: true,
-    });
-    const defaultShortcuts = {
-      pomodoro: "⌘ + P",
-      note: "⌘ + N",
-      reminder: "⌘ + R",
-    };
-    setShortcuts(defaultShortcuts);
-    setTempShortcuts(defaultShortcuts);
+    setNotifications(DEFAULT_NOTIFICATIONS);
+    setShortcuts(DEFAULT_SHORTCUTS);
+    setTempShortcuts(DEFAULT_SHORTCUTS);
     setTheme("system");
-    localStorage.removeItem("studyos_language");
-    localStorage.removeItem("studyos_dateFormat");
-    localStorage.removeItem("studyos_notifications");
-    localStorage.removeItem("studyos_shortcuts");
-    localStorage.removeItem("theme");
+    removeKeys(
+      "studyos_language",
+      "studyos_dateFormat",
+      "studyos_notifications",
+      "studyos_shortcuts",
+      "theme",
+    );
     alert("Settings reset to defaults!");
   };
 
@@ -129,7 +123,7 @@ export function Settings() {
   const saveShortcuts = () => {
     setShortcuts(tempShortcuts);
     setIsEditingShortcuts(false);
-    localStorage.setItem("studyos_shortcuts", JSON.stringify(tempShortcuts));
+    writeJSON("studyos_shortcuts", tempShortcuts);
   };
 
   const cancelShortcuts = () => {
@@ -549,89 +543,78 @@ export function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 p-6 lg:p-8">
-      <div className="mx-auto max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        >
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-              <GradientText from="from-primary-500" to="to-accent-500">
-                Settings
-              </GradientText>
-            </h1>
-            <p className="mt-1 text-gray-600 dark:text-gray-300">
-              Customize your StudyOS experience
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <AnimatedButton variant="outline" size="sm" onClick={resetDefaults}>
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </AnimatedButton>
-            <AnimatedButton size="sm" onClick={saveSettings}>
-              <Save className="h-4 w-4" />
-              Save All
-            </AnimatedButton>
-          </div>
-        </motion.div>
-
-        <div className="space-y-4">
-          {settingsSections.map((section, index) => (
-            <motion.div
-              key={section.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <div className="relative">
-                <div
-                  className="absolute -inset-0.5 rounded-2xl blur-xl opacity-30"
-                  style={{
-                    background: `radial-gradient(circle at center, ${section.glow}, transparent 70%)`,
-                  }}
-                />
-                <GlassCard className="relative p-6 transition-all hover:scale-[1.01]">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="rounded-xl p-3 shrink-0"
-                      style={{
-                        background: `rgba(var(--color-${section.color}-500), 0.1)`,
-                      }}
-                    >
-                      <section.icon
-                        className="h-6 w-6"
-                        style={{ color: `var(--color-${section.color}-500)` }}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            {section.title}
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {section.description}
-                          </p>
-                        </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500">
-                          {section.id === "appearance" && `Current: ${theme}`}
-                          {section.id === "language" && `Language: ${language}`}
-                          {section.id === "notifications" &&
-                            `${Object.values(notifications).filter(Boolean).length}/4 enabled`}
-                        </div>
-                      </div>
-                      {section.children}
-                    </div>
-                  </div>
-                </GlassCard>
-              </div>
-            </motion.div>
-          ))}
+    <ModuleShell
+      title="Settings"
+      subtitle="Customize your StudyOS experience"
+      className="p-6 lg:p-8"
+      contentClassName="max-w-4xl"
+      headerClassName="sm:flex-row sm:items-center sm:justify-between"
+      actions={
+        <div className="flex gap-2">
+          <AnimatedButton variant="outline" size="sm" onClick={resetDefaults}>
+            <RotateCcw className="h-4 w-4" />
+            Reset
+          </AnimatedButton>
+          <AnimatedButton size="sm" onClick={saveSettings}>
+            <Save className="h-4 w-4" />
+            Save All
+          </AnimatedButton>
         </div>
+      }
+    >
+      <div className="space-y-4">
+        {settingsSections.map((section, index) => (
+          <motion.div
+            key={section.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <div className="relative">
+              <div
+                className="absolute -inset-0.5 rounded-2xl blur-xl opacity-30"
+                style={{
+                  background: `radial-gradient(circle at center, ${section.glow}, transparent 70%)`,
+                }}
+              />
+              <GlassCard className="relative p-6 transition-all hover:scale-[1.01]">
+                <div className="flex items-start gap-4">
+                  <div
+                    className="rounded-xl p-3 shrink-0"
+                    style={{
+                      background: `rgba(var(--color-${section.color}-500), 0.1)`,
+                    }}
+                  >
+                    <section.icon
+                      className="h-6 w-6"
+                      style={{ color: `var(--color-${section.color}-500)` }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {section.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {section.description}
+                        </p>
+                      </div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">
+                        {section.id === "appearance" && `Current: ${theme}`}
+                        {section.id === "language" && `Language: ${language}`}
+                        {section.id === "notifications" &&
+                          `${Object.values(notifications).filter(Boolean).length}/4 enabled`}
+                      </div>
+                    </div>
+                    {section.children}
+                  </div>
+                </div>
+              </GlassCard>
+            </div>
+          </motion.div>
+        ))}
       </div>
-    </div>
+    </ModuleShell>
   );
 }
