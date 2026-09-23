@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+dist-electron
+*.local
+.env
+.env.*
+!.env.*.example
+
+# electron-builder output
+release
+release-electron
+
+# Pre-extracted Electron runtime used by electron-builder (restored from cache)
+electron-dist
+dist_electron
+
+# Build logs and temp files
+*.log
+build_*.log
+build_*.txt
+_asar_check.txt
+_insets.txt
+audit.json
+
+# Android build cache
+android/.gradle
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

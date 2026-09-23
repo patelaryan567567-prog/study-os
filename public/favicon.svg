@@ -1,0 +1,71 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="55%" stop-color="#6D28D9"/>
+      <stop offset="100%" stop-color="#9333EA"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="24" flood-color="#1E1B4B" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="32" y="32" width="960" height="960" rx="224" ry="224" fill="url(#bg)"/>
+
+  <!-- Subtle highlight arc -->
+  <path d="M 32 420 A 224 224 0 0 1 256 32 L 768 32 A 224 224 0 0 1 992 256 L 992 300 L 32 300 Z" fill="#FFFFFF" opacity="0.06"/>
+
+  <!-- Open book -->
+  <g filter="url(#softShadow)">
+    <!-- Left page -->
+    <path d="M 512 470
+             C 430 400, 320 380, 210 400
+             C 190 404, 178 418, 178 440
+             L 178 700
+             C 178 722, 194 736, 216 732
+             C 322 712, 430 730, 512 800 Z"
+          fill="url(#page)"/>
+    <!-- Right page -->
+    <path d="M 512 470
+             C 594 400, 704 380, 814 400
+             C 834 404, 846 418, 846 440
+             L 846 700
+             C 846 722, 830 736, 808 732
+             C 702 712, 594 730, 512 800 Z"
+          fill="url(#page)"/>
+    <!-- Spine -->
+    <path d="M 512 470 L 512 800 C 520 794 528 789 536 785 L 536 480 Z" fill="#C7D2FE"/>
+  </g>
+
+  <!-- Page lines -->
+  <g stroke="#6366F1" stroke-width="14" stroke-linecap="round" opacity="0.55" fill="none">
+    <path d="M 240 480 C 320 468 400 480 460 520"/>
+    <path d="M 240 560 C 320 548 400 560 460 600"/>
+    <path d="M 784 480 C 704 468 624 480 564 520"/>
+    <path d="M 784 560 C 704 548 624 560 564 600"/>
+  </g>
+
+  <!-- Graduation cap -->
+  <g filter="url(#softShadow)">
+    <!-- Mortarboard -->
+    <path d="M 512 130 L 862 268 L 512 406 L 162 268 Z" fill="url(#cap)"/>
+    <!-- Cap base -->
+    <path d="M 400 320 L 400 420 C 400 470 624 470 624 420 L 624 320 L 512 364 Z" fill="#F59E0B"/>
+    <!-- Tassel -->
+    <path d="M 800 280 L 810 380" stroke="#FDE68A" stroke-width="16" stroke-linecap="round"/>
+    <circle cx="810" cy="398" r="22" fill="#FDE68A"/>
+  </g>
+
+  <!-- Orbit dot accents (subtle "OS" tech feel) -->
+  <circle cx="205" cy="205" r="18" fill="#FFFFFF" opacity="0.35"/>
+  <circle cx="828" cy="770" r="13" fill="#FFFFFF" opacity="0.30"/>
+</svg>

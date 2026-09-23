@@ -1,0 +1,43 @@
+rules_version = '2';
+
+// StudyOS Firestore Security Rules
+// ---------------------------------
+// Every piece of StudyOS data lives under a user document:
+//
+//   users/{userId}            profile, settings, xp, coins
+//   users/{userId}/tasks      tasks
+//   users/{userId}/lectures   lecture/progress tracking
+//   users/{userId}/studySessions
+//   users/{userId}/analytics
+//   users/{userId}/appdata    synced localStorage stores (notes, backlog, ...)
+//
+// The rule below grants a signed-in user read AND write access ONLY to the
+// document whose ID equals their Firebase Authentication UID, plus everything
+// nested underneath it. User A can never read or write User B's subtree.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // True when the request comes from an authenticated Firebase user.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // True when the {userId} segment of the path equals the caller's UID.
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // users/{userId} document itself (profile, settings, xp, coins).
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // Every subcollection (tasks, notes, studySessions, analytics, appdata,
+      // backlogs, and anything added in the future). `{document=**}` matches
+      // any nested document at any depth under this user.
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+import { useSyncExternalStore } from  react;
+
+ export type ClockMode = pomodoro | countdown | stopwatch | alarm;
+ type Phase = work | break;
+ export type Alarm = {
+   id: string;
+   time: string; // HH:mm format
+   enabled: boolean;
+   title: string; // Alarm name/label
+   note: string; // Note/reminder text
+   tone: chime | bell | gentle;
+   volume: number;
+   // Unique identifier for scheduling system notifications
+   notifyId?: string;
+ };
+
+ export type FocusClockState = {
+   mode: ClockMode; phase: Phase; running: boolean; endsAt: number | null;
+   secondsLeft: number; stopwatchElapsed: number; stopwatchStartedAt: number | null;
+   workMin: number; shortBreakMin: number; longBreakMin: number; cyclesBeforeLong: number;
+   cycle: number; countdownSeconds: number; alarmTime: string; alarmEnabled: boolean; floating: boolean;
+   alarmTone: chime | bell | gentle; alarmVolume: number;
+   selectedTaskId: string; autoStartBreak: boolean; blockDuringFocus: boolean;
+   // Multiple alarms support
+   alarms: Alarm[];
+   selectedAlarmIndex: number | null;
+   // Note tracking for alarms
+   alarmNotes: Record<string, string>;
+   // Scheduled notification tracking
+   scheduledAlarms: Record<string, boolean>;
+ };
+
+ const KEY = studyos_focus_clock_v2;
+ const initial: FocusClockState = {
+   mode: pomodoro,
+   phase: work,
+   running: false,
+   endsAt: null,
+   secondsLeft: 25 * 60,
+   stopwatchElapsed: 0,
+   stopwatchStartedAt: null,
+   workMin: 25,
+   shortBreakMin: 5,
+   longBreakMin: 15,
+   cyclesBeforeLong: 4,
+   cycle: 0,
+   countdownSeconds: 10 * 60,
+   alarmTime: ,
+   alarmEnabled: false,
+   floating: false,
+   alarmTone: chime,
+   alarmVolume: .65,
+   selectedTaskId: ,
+   autoStartBreak: true,
+   blockDuringFocus: false,
+   // Multiple alarms support
+   alarms: [],
+   selectedAlarmIndex: null,
+   alarmNotes: {},
+   scheduledAlarms: {},
+ };

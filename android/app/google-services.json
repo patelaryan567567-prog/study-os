@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "974604096916",
+    "firebase_url": "https://study-os-f9bba-default-rtdb.firebaseio.com",
+    "project_id": "study-os-f9bba",
+    "storage_bucket": "study-os-f9bba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:974604096916:android:170606389a91d36049eb81",
+        "android_client_info": {
+          "package_name": "com.studyos.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "974604096916-mqpv41gktkcbv1e296umfc12r3imt4fp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.studyos.app",
+            "certificate_hash": "02ea89ce23f8fe2c0ce2524302967c7c904afbfb"
+          }
+        },
+        {
+          "client_id": "974604096916-eeapdndotn1o15tgj8i6l8bj55qg8i9d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdf0dzgTyv9lsls7S6UWK5wYUI_upySUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "974604096916-eeapdndotn1o15tgj8i6l8bj55qg8i9d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

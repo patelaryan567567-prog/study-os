@@ -1,0 +1,58 @@
+﻿vssadmin 1.1 - Volume Shadow Copy Service administrative command-line tool
+(C) Copyright 2001-2013 Microsoft Corp.
+
+Contents of shadow copy set ID: {5be3c16c-6571-4e87-939b-d3da9b2c666e}
+   Contained 1 shadow copies at creation time: 8/20/2026 9:54:39 AM
+      Shadow Copy ID: {7d2fcc77-b306-4a9f-8f39-31f6e1b2c66d}
+         Original Volume: (C:)\\?\Volume{d20103a6-31fb-47ab-bc02-0e476167bb04}\
+         Shadow Copy Volume: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1
+         Originating Machine: Aryan-Fighter
+         Service Machine: Aryan-Fighter
+         Provider: 'Microsoft Software Shadow Copy provider 1.0'
+         Type: ClientAccessible
+         Attributes: Persistent, Client-accessible, No auto release, No writers, Differential
+
+Contents of shadow copy set ID: {495fab6c-11c0-4617-8980-3df09d651bf4}
+   Contained 1 shadow copies at creation time: 8/20/2026 3:35:02 PM
+      Shadow Copy ID: {6400ab0b-fc10-473c-9ffb-cef7fc546b4d}
+         Original Volume: (C:)\\?\Volume{d20103a6-31fb-47ab-bc02-0e476167bb04}\
+         Shadow Copy Volume: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2
+         Originating Machine: Aryan-Fighter
+         Service Machine: Aryan-Fighter
+         Provider: 'Microsoft Software Shadow Copy provider 1.0'
+         Type: ClientAccessibleWriters
+         Attributes: Persistent, Client-accessible, No auto release, Differential, Auto recovered
+
+Contents of shadow copy set ID: {4c83f1e3-a064-4a37-936d-4c5db8cc414a}
+   Contained 1 shadow copies at creation time: 8/20/2026 9:32:50 PM
+      Shadow Copy ID: {1728e99a-6407-48c4-b9b2-05a63470c6e9}
+         Original Volume: (C:)\\?\Volume{d20103a6-31fb-47ab-bc02-0e476167bb04}\
+         Shadow Copy Volume: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy3
+         Originating Machine: Aryan-Fighter
+         Service Machine: Aryan-Fighter
+         Provider: 'Microsoft Software Shadow Copy provider 1.0'
+         Type: ClientAccessible
+         Attributes: Persistent, Client-accessible, No auto release, No writers, Differential
+
+Contents of shadow copy set ID: {bb81ab5c-3144-49a3-96c3-a05b8f7e4b4f}
+   Contained 1 shadow copies at creation time: 8/21/2026 1:59:10 PM
+      Shadow Copy ID: {4e4dee8d-6fc5-480f-99d3-46fd1e8c765a}
+         Original Volume: (C:)\\?\Volume{d20103a6-31fb-47ab-bc02-0e476167bb04}\
+         Shadow Copy Volume: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy4
+         Originating Machine: Aryan-Fighter
+         Service Machine: Aryan-Fighter
+         Provider: 'Microsoft Software Shadow Copy provider 1.0'
+         Type: ClientAccessible
+         Attributes: Persistent, Client-accessible, No auto release, No writers, Differential
+
+Contents of shadow copy set ID: {2d4a06e2-39eb-4e2c-954a-28b55e6db9ac}
+   Contained 1 shadow copies at creation time: 8/22/2026 12:20:51 PM
+      Shadow Copy ID: {5d543d24-7a46-4b26-bcd1-83096b78f345}
+         Original Volume: (C:)\\?\Volume{d20103a6-31fb-47ab-bc02-0e476167bb04}\
+         Shadow Copy Volume: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy5
+         Originating Machine: Aryan-Fighter
+         Service Machine: Aryan-Fighter
+         Provider: 'Microsoft Software Shadow Copy provider 1.0'
+         Type: ClientAccessible
+         Attributes: Persistent, Client-accessible, No auto release, No writers, Differential
+

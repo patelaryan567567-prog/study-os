@@ -1,0 +1,57 @@
+appId: com.studyos.app
+productName: StudyOS
+directories:
+  buildResources: "build"
+  output: "release"
+# Pre-extracted Electron distribution. Some Windows setups (Windows Defender /
+# controlled folder access) block electron-builder's internal "extract to
+# <out>.tmp then rename" step with EPERM. Pointing electronDist at an already
+# unpacked copy makes electron-builder copy files instead of renaming, which
+# avoids that lock. `scripts/build-electron.mjs` restores this folder from the
+# local npm cache automatically when it is missing.
+electronDist: "electron-dist"
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+  # The renderer bundle and main process are fully self-contained; no runtime
+  # node_modules are required inside the EXE.
+  - "!node_modules/**"
+extraMetadata:
+  main: dist-electron/main.js
+extraResources:
+  # Used by the tray icon at runtime (process.resourcesPath/icon.png)
+  - from: "build/icon.png"
+    to: "icon.png"
+win:
+  icon: "build/icon.ico"
+  target:
+    - nsis
+  artifactName: "StudyOS Setup ${version}.${ext}"
+  # ── Code signing (required for Windows Smart App Control / SmartScreen) ──
+  # SAC blocks unsigned binaries and has NO per-app exclusion, so releases
+  # must be signed with a trusted certificate (self-signed will NOT work).
+  #
+  # Option A — PFX certificate (OV/EV): electron-builder reads these env vars
+  # automatically during `npm run app:build`; no config change is needed:
+  #   $env:CSC_LINK = "C:\certs\studyos-codesign.pfx"
+  #   $env:CSC_KEY_PASSWORD = "<pfx password>"
+  #
+  # Option B — Azure Trusted Signing (recommended: cheap, instant reputation):
+  # Uncomment and fill in after creating a Trusted Signing account in Azure:
+  # azureSignOptions:
+  #   publisherName: "Your Validated Identity Name"
+  #   endpoint: "https://eus.codesigning.azure.net/"
+  #   codeSigningAccountName: "your-trusted-signing-account"
+  #   certificateProfileName: "your-certificate-profile"
+  #
+  # Already built without signing? Sign the existing artifacts with:
+  #   npm run sign
+  # Full walkthrough: SIGNING_SETUP.md
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: StudyOS

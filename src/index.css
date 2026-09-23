@@ -1,0 +1,483 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
+@import "./theme/tokens.css";
+
+/* Tailwind v4 defaults dark: to prefers-color-scheme; this app toggles a
+   `.dark` class on <html> instead (see ThemeContext.tsx). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  * {
+    @apply border-gray-200 dark:border-gray-800;
+  }
+
+    html {
+    @apply scroll-smooth;
+    font-size: calc(16px * var(--studyos-font-scale, 1));
+    /* Anchor the root height to the *dynamic* viewport so that on mobile/web
+       the on-screen keyboard does not collapse the visible area and leave
+       fixed-positioned inputs un-tappable or stuck behind the keyboard.
+       dvh is the dynamic viewport height; fall back to 100% for browsers
+       (and the Electron file:// renderer) that don't support it. */
+    height: 100dvh;
+    height: 100%;
+  }
+
+  body,
+  #root {
+    min-height: 100dvh;
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white;
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* High Contrast Text for all headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-gray-900 dark:text-white;
+  }
+
+  p,
+  span,
+  div {
+    @apply text-gray-700 dark:text-gray-200;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary-500/30 text-primary-900 dark:text-primary-100;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   FOCUS VISIBILITY — every interactive element gets a clear, visible focus
+   indicator (the "yellow box" the user expects). Without this, Electron +
+   Tailwind Preflight's `outline: none` leaves keyboard/tab navigation
+   invisible, and <input>/<textarea> focus after overlay interactions looks
+   broken even when the element IS focused. Applied globally so no module
+   needs per-component duplication.
+   ══════════════════════════════════════════════════════════════════════════════ */
+@layer base {
+  /* Keyboard/tab focus — bright yellow ring, offset for contrast on any bg. */
+  :focus-visible {
+    outline: 3px solid #facc15;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Mouse-click focus on inputs — keep the field itself visibly highlighted
+     (the Input component already does this via onFocus inline styles; this
+     is the fallback for every other text field / textarea in the app). */
+  input:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible),
+  select:focus:not(:focus-visible) {
+    outline: 2px solid rgba(59, 130, 246, 0.6);
+    outline-offset: 1px;
+  }
+}
+
+/* High-contrast mode gets an even thicker, brighter ring. */
+html.accessibility-high-contrast :focus-visible {
+  outline: 3px solid #facc15;
+  outline-offset: 3px;
+}
+}
+
+/* Accessibility preferences are applied to the document root so every module,
+   modal and page benefits without needing duplicate per-component styles. */
+html.accessibility-readable-font body {
+  font-family: Arial, Verdana, sans-serif;
+  letter-spacing: 0.015em;
+  word-spacing: 0.04em;
+}
+
+html.accessibility-high-contrast {
+  --color-text-muted: #cbd5e1;
+  --color-text-secondary: #e2e8f0;
+}
+
+html.accessibility-high-contrast .glass,
+html.accessibility-high-contrast .glass-card {
+  border-color: rgba(255, 255, 255, 0.32);
+  background-color: rgba(7, 10, 22, 0.92);
+}
+
+html.accessibility-high-contrast :focus-visible {
+  outline: 3px solid #facc15;
+  outline-offset: 3px;
+}
+
+html.accessibility-reduced-motion {
+  scroll-behavior: auto;
+}
+
+html.accessibility-reduced-motion *,
+html.accessibility-reduced-motion *::before,
+html.accessibility-reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 dark:border-white/5;
+  }
+
+  .glass-card {
+    @apply bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10 dark:border-white/5;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-500 via-accent-500 to-pink-500 bg-clip-text text-transparent bg-[length:200%_auto];
+    animation: gradient 3s ease-in-out infinite;
+  }
+
+  .shimmer-text {
+    background-image: linear-gradient(
+      90deg,
+      #a78bfa,
+      #f59e0b,
+      #ec4899,
+      #a78bfa
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 24px rgba(139, 92, 246, 0.6);
+  }
+
+  .glow-text-accent {
+    text-shadow: 0 0 24px rgba(245, 158, 11, 0.6);
+  }
+
+  .glow-text-pink {
+    text-shadow: 0 0 24px rgba(236, 72, 153, 0.6);
+  }
+
+  .glow-text-cyan {
+    text-shadow: 0 0 24px rgba(6, 182, 212, 0.6);
+  }
+
+  /* Card styles with proper text contrast */
+  .card {
+    @apply bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm dark:shadow-lg dark:shadow-primary-500/5;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:scale-[1.01] dark:hover:shadow-primary-500/10;
+  }
+
+  /* Sidebar styles */
+  .sidebar-link {
+    @apply text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5;
+  }
+
+  .sidebar-link-active {
+    @apply text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10;
+  }
+}
+
+@layer utilities {
+  @keyframes gradient {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient {
+    animation: gradient 3s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse-slow {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  .animate-glow {
+    animation: glow 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background-size: 200% auto;
+    animation: shimmer 4s linear infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+/* Markdown note preview */
+.prose-note h1 { font-size: 1.5rem; font-weight: 700; margin: 0.6em 0 0.3em; }
+.prose-note h2 { font-size: 1.25rem; font-weight: 700; margin: 0.6em 0 0.3em; }
+.prose-note h3 { font-size: 1.1rem; font-weight: 600; margin: 0.5em 0 0.3em; }
+.prose-note p { margin: 0.4em 0; line-height: 1.6; }
+.prose-note ul, .prose-note ol { padding-left: 1.4em; margin: 0.4em 0; }
+.prose-note li { margin: 0.15em 0; }
+.prose-note code { background: rgba(255,255,255,0.08); border-radius: 4px; padding: 0.1em 0.35em; font-size: 0.9em; }
+.prose-note pre { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 0.75em 1em; overflow-x: auto; margin: 0.5em 0; }
+.prose-note pre code { background: none; padding: 0; }
+.prose-note blockquote { border-left: 3px solid var(--color-accent, #6c8cff); padding-left: 0.9em; margin: 0.5em 0; opacity: 0.85; }
+.prose-note table { border-collapse: collapse; margin: 0.6em 0; width: 100%; }
+.prose-note th, .prose-note td { border: 1px solid rgba(255,255,255,0.12); padding: 0.35em 0.6em; text-align: left; }
+.prose-note th { background: rgba(255,255,255,0.05); }
+.prose-note a { color: var(--color-accent, #6c8cff); text-decoration: underline; }
+.prose-note hr { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 0.8em 0; }
+.prose-note img { max-width: 100%; border-radius: 8px; }
+
+/* Utility: clamp multi-line text */
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Colored glow accents for module cards */
+.glow-border-red { border: 1px solid rgba(248,113,113,0.35); box-shadow: 0 0 18px rgba(248,113,113,0.12), inset 0 0 24px rgba(248,113,113,0.04); }
+.glow-border-green { border: 1px solid rgba(52,211,153,0.35); box-shadow: 0 0 18px rgba(52,211,153,0.12), inset 0 0 24px rgba(52,211,153,0.04); }
+.glow-border-blue { border: 1px solid rgba(96,165,250,0.35); box-shadow: 0 0 18px rgba(96,165,250,0.12), inset 0 0 24px rgba(96,165,250,0.04); }
+.glow-border-purple { border: 1px solid rgba(192,132,252,0.35); box-shadow: 0 0 18px rgba(192,132,252,0.12), inset 0 0 24px rgba(192,132,252,0.04); }
+.glow-border-amber { border: 1px solid rgba(251,191,36,0.35); box-shadow: 0 0 18px rgba(251,191,36,0.12), inset 0 0 24px rgba(251,191,36,0.04); }
+.glow-border-cyan { border: 1px solid rgba(34,211,238,0.35); box-shadow: 0 0 18px rgba(34,211,238,0.12), inset 0 0 24px rgba(34,211,238,0.04); }
+
+.accent-left { position: relative; }
+.accent-left::before {
+  content: ""; position: absolute; left: 0; top: 10%; bottom: 10%;
+  width: 3px; border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent-top, #60a5fa), var(--accent-bottom, #a78bfa));
+  box-shadow: 0 0 10px var(--accent-top, #60a5fa);
+}
+
+.gradient-title {
+  background: linear-gradient(90deg, #60a5fa, #c084fc, #f472b6);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+.hover-glow { transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease; }
+.hover-glow:hover { box-shadow: 0 0 24px rgba(124,140,255,0.18); transform: translateY(-1px); }
+
+/* ═════════════ Android (Capacitor) + small-screen hardening ═════════════ */
+/* Content must never be able to push the app wider than the viewport. */
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Make the main scroll area fill the available viewport height. Previously it
+   was only flex-1, whose height depends on the (often broken) parent height
+   chain — when an input received focus (mobile keyboard / first click) the
+   viewport height would shift and the fixed input row ended up un-tappable,
+   so a second keystroke never reached it. Anchoring to the dynamic viewport
+   keeps the area stable across keyboard/resize events. */
+/* Desktop (web/Electron): let the flex chain size the scroll area, anchored to
+   the window via the `.h-full` parents. In the native app the scroll area is
+   pinned to `100dvh` MINUS the topbar's rendered height (measured in
+   AppLayout and exposed as `--studyos-topbar-height`): a bare `100dvh` here
+   extends the scroll area below the window behind the topbar, so the last row
+   of every page is clipped by the parent's `overflow-hidden` and can never be
+   scrolled into view. The on-screen keyboard can still collapse the layout
+   safely because `dvh` re-evaluates on every resize. */
+.app-scroll-area {
+  height: auto;
+  min-height: 0;
+}
+
+html.native-app .app-scroll-area {
+  height: calc(100dvh - var(--studyos-topbar-height, 0px));
+  min-height: calc(100dvh - var(--studyos-topbar-height, 0px));
+  max-height: calc(100dvh - var(--studyos-topbar-height, 0px));
+}
+
+/* Dynamic viewport height: on Android the system/status bars change the
+   visible height, so bare 100vh leaves the bottom cut off. Fall back
+   gracefully when dvh is unsupported. */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+  }
+}
+
+main {
+  min-width: 0;
+}
+
+/* ── Prevent horizontal overflow / cut-off content on small screens ── */
+html.native-app,
+html.native-app body {
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+/* Let long unbroken strings (API keys, notes, headings) wrap instead of
+   pushing the page wider than the viewport on mobile. */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Tap highlight flicker on Android WebView */
+body {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* ── Native app (Capacitor WebView) overrides ────────────────────────── */
+/* backdrop-filter is the #1 jank source on the Android WebView: it forces a
+   full-window compositor repaint on every scroll/keystroke. Disable every
+   instance and fall back to near-opaque backgrounds. */
+html.native-app [class*="backdrop-blur"],
+html.native-app .glass,
+html.native-app .glass-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.native-app .glass {
+  background-color: rgba(10, 12, 24, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.native-app .glass-card {
+  background-color: rgba(16, 18, 32, 0.92) !important;
+}
+
+/* Ambient background orbs use giant blur(80px) layers — hide them in the
+   native app (see AppLayout .ambient-orbs). */
+html.native-app .ambient-orbs {
+  display: none !important;
+}
+
+/* ── Electron desktop (Windows) overrides ─────────────────────────────── */
+/* backdrop-filter is a known click-swallower on Windows/Electron: text fields
+   inside or behind a backdrop-filter panel intermittently ignore clicks (no
+   caret, no focus ring) until the window is minimized+restored. Side by side
+   with app.disableHardwareAcceleration() in electron/main.ts, killing every
+   instance and using near-opaque translucent backgrounds makes inputs
+   reliably clickable in the packaged app. */
+html.electron-app [class*="backdrop-blur"],
+html.electron-app .glass,
+html.electron-app .glass-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.electron-app .glass {
+  background-color: rgba(10, 12, 24, 0.96) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.electron-app .glass-card {
+  background-color: rgba(16, 18, 32, 0.95) !important;
+}
+
+/* Edge-to-edge: keep the last row of content above Android's gesture bar.
+   Capacitor 8's Android SystemBars plugin reports true safe-area values as CSS
+   custom properties (--safe-area-inset-*) on <html>; env() is the fallback for
+   webviews/browsers that populate it natively. The hard floor is a safety net
+   for gesture-navigation devices where neither reaches the renderer, so the
+   bottom row always remains reachable by scrolling. */
+html.native-app body {
+  padding-bottom: max(
+    var(--safe-area-inset-bottom, 0px),
+    env(safe-area-inset-bottom, 0px),
+    16px
+  );
+}
+
+html.native-app .app-scroll-area {
+  padding-bottom: max(
+    var(--safe-area-inset-bottom, 0px),
+    env(safe-area-inset-bottom, 0px),
+    28px
+  );
+}

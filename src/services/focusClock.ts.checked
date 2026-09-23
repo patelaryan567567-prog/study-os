@@ -1,0 +1,184 @@
+import { useSyncExternalStore } from  react;
+
+ export type ClockMode = pomodoro | countdown | stopwatch | alarm;
+ type Phase = work | break;
+ export type Alarm = {
+   id: string;
+   time: string; // HH:mm format
+   enabled: boolean;
+   title: string; // Alarm name/label
+   note: string; // Note/reminder text
+   tone: chime | bell | gentle;
+   volume: number;
+   // Unique identifier for scheduling system notifications
+   notifyId?: string;
+ };
+
+ export type FocusClockState = {
+   mode: ClockMode; phase: Phase; running: boolean; endsAt: number | null;
+   secondsLeft: number; stopwatchElapsed: number; stopwatchStartedAt: number | null;
+   workMin: number; shortBreakMin: number; longBreakMin: number; cyclesBeforeLong: number;
+   cycle: number; countdownSeconds: number; alarmTime: string; alarmEnabled: boolean; floating: boolean;
+   alarmTone: chime | bell | gentle; alarmVolume: number;
+   selectedTaskId: string; autoStartBreak: boolean; blockDuringFocus: boolean;
+   // Multiple alarms support
+   alarms: Alarm[];
+   selectedAlarmIndex: number | null;
+   // Note tracking for alarms
+   alarmNotes: Record<string, string>;
+   // Scheduled notification tracking
+   scheduledAlarms: Record<string, boolean>;
+ };
+
+ const KEY = studyos_focus_clock_v2;
+ const initial: FocusClockState = {
+   mode: pomodoro,
+   phase: work,
+   running: false,
+   endsAt: null,
+   secondsLeft: 25 * 60,
+   stopwatchElapsed: 0,
+   stopwatchStartedAt: null,
+   workMin: 25,
+   shortBreakMin: 5,
+   longBreakMin: 15,
+   cyclesBeforeLong: 4,
+   cycle: 0,
+   countdownSeconds: 10 * 60,
+   alarmTime: ,
+   alarmEnabled: false,
+   floating: false,
+   alarmTone: chime,
+   alarmVolume: .65,
+   selectedTaskId: ,
+   autoStartBreak: true,
+   blockDuringFocus: false,
+   // Multiple alarms support
+   alarms: [],
+   selectedAlarmIndex: null,
+   alarmNotes: {},
+   scheduledAlarms: {},
+
+/**
+ * Schedule a single alarm notification
+ */
+export async function scheduleAlarm(clock: FocusClockState): Promise<void> {
+   // Cancel any previously scheduled alarm for this time
+   if (clock.scheduledAlarms[clock.alarmTime]) {
+     await cancelScheduledAlarm(clock.alarmTime);
+   }
+   // Only schedule if alarm is enabled and time is set
+   if (!clock.alarmEnabled || !clock.alarmTime) return;
+   // Parse the time
+   const [hours, minutes] = clock.alarmTime.split(":").map(Number);
+   if (isNaN(hours) || isNaN(minutes)) return;
+   // Calculate target time today
+   const now = new Date();
+   const target = new Date();
+   target.setHours(hours, minutes, 0, 0);
+   // If time already passed today, schedule for tomorrow
+   if (target <= now) {
+     target.setDate(target.getDate() + 1);
+   }
+   // Calculate delay in milliseconds
+   const delay = target.getTime() - now.getTime();
+   // Store the notifyId in the alarm if not already set
+   const notifyId = `alarm_${clock.alarmTime}_${Date.now()}`;
+   clock.scheduledAlarms[clock.alarmTime] = true;
+   // Add to alarms array if not already present
+   if (!clock.alarms.some(a => a.notifyId === notifyId)) {
+     const newAlarm: Alarm = { ...clock.alarms.find(a => a.time === clock.alarmTime), id: notifyId, notifyId, note: clock.note || "" };
+     patchFocusClock({ alarms: [...clock.alarms, newAlarm] });
+   }
+   // Schedule local notification
+   try {
+     // Try using Capacitor LocalNotifications if available
+     const { nativePlugin } = await import("@/native/capacitorBridge");
+     const LocalNotifications = nativePlugin("LocalNotifications");
+     if (LocalNotifications?.schedule) {
+       await LocalNotifications.schedule?.({
+         notifications: [{
+           title: `Alarm: ${clock.alarms.find(a => a.time === clock.alarmTime)?.title || "Alarm"}`,
+           body: clock.note || "Time to wake up!",
+           id: notifyId,
+           schedule: { at: new Date(target) },
+           sound: true,
+         }],
+       });
+       return;
+     }
+   } catch {}
+   // Fallback: use setTimeout to show notification when time comes
+   clock._alarmTimeout = window.setTimeout(() => {
+     // Show notification
+     if (typeof window !== "undefined" && "Notification" in window) {
+       if (Notification.permission === "granted") {
+         const alarmInfo = clock.alarms.find(a => a.time === clock.alarmTime);
+         new Notification(`Alarm: ${alarmInfo?.title || "Alarm"}`, { body: alarmInfo?.note || "Time to wake up!" });
+       }
+     }
+     // Play alarm sound
+     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+     const oscillator = audioCtx.createOscillator();
+     oscillator.type = "sine";
+     oscillator.frequency = 440;
+     oscillator.connect(audioCtx.destination);
+     oscillator.start();
+     setTimeout(() => oscillator.stop(), 5000);
+   }, delay);
+}
+
+/**
+ * Cancel a scheduled alarm
+ */
+export async function cancelScheduledAlarm(alarmTime: string): Promise<void> {
+   // Clear any timeout
+   if ((window as any)._alarmTimeout) {
+     clearTimeout((window as any)._alarmTimeout);
+     delete (window as any)._alarmTimeout;
+   }
+   // Cancel via Capacitor if available
+   try {
+     const { nativePlugin } = await import("@/native/capacitorBridge");
+     const LocalNotifications = nativePlugin("LocalNotifications");
+     if (LocalNotifications?.cancelLocalNotification) {
+       await LocalNotifications.cancelLocalNotification?.(alarmTime);
+     }
+   } catch {}
+   // Remove from scheduled tracking
+   delete (window as any).scheduledAlarms?.[alarmTime];
+}
+
+/**
+ * Check and trigger any due alarms
+ */
+export function checkDueAlarms(clock: FocusClockState): void {
+   if (!clock.alarmEnabled || !clock.alarmTime) return;
+   const now = new Date();
+   const [hours, minutes] = clock.alarmTime.split(":").map(Number);
+   if (isNaN(hours) || isNaN(minutes)) return;
+   const target = new Date();
+   target.setHours(hours, minutes, 0, 0);
+   // If target time has passed today or is now
+   if (target <= now) {
+     // Trigger the alarm immediately
+     triggerAlarm(clock);
+   }
+}
+
+/**
+ * Trigger alarm manually
+ */
+export function triggerAlarm(clock: FocusClockState): void {
+   if (!clock.alarmEnabled) return;
+   // Show notification
+   if (typeof window !== "undefined" && "Notification" in window) {
+     if (Notification.permission === "granted") {
+       const alarmInfo = clock.alarms.find(a => a.time === clock.alarmTime);
+       new Notification(`Alarm: ${alarmInfo?.title || "Alarm"}`, { body: alarmInfo?.note || "Time to wake up!" });
+     }
+   }
+   // Reset alarm enabled state after triggering
+   patchFocusClock({ alarmEnabled: false, alarmTime: "" });
+ }
+ };

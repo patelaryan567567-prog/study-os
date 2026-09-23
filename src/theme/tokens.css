@@ -1,0 +1,76 @@
+/* Tailwind v4 theme registration: utilities like `text-primary-500` or
+   `bg-accent-400` only exist for scales declared here. */
+@theme {
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+
+  /* Status colors used by badges, trends and progress indicators */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #06b6d4;
+}
+
+:root {
+  /* Text Colors — Dark Theme (only theme; light mode removed) */
+  --text-primary: #ffffff;
+  --text-secondary: #f0f0f0;
+  --text-tertiary: #d4d4d4;
+  --text-muted: #a0a0a0;
+  --text-inverse: #0a0a0a;
+
+  /* Background Colors */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --bg-tertiary: #1e1e1e;
+  --bg-card: #1a1a1a;
+  --bg-hover: #2a2a2a;
+
+  /* Border Colors */
+  --border-light: #2a2a2a;
+  --border-medium: #3a3a3a;
+
+  /* Glow Colors (RGB triplets consumed as rgba(var(--glow-*), a)) */
+  --glow-primary: 139, 92, 246;
+  --glow-accent: 245, 158, 11;
+  --glow-pink: 244, 114, 182;
+  --glow-cyan: 34, 211, 238;
+  --glow-emerald: 52, 211, 153;
+  --glow-rose: 251, 113, 133;
+  --glow-violet: 167, 139, 250;
+}
+
+/* Compatibility: light-mode CSS was removed, but the `.dark` guard is still
+   referenced by `@custom-variant dark` in index.css, so we keep the token set
+   applied to the always-present `.dark` class too (e.g. Cross settings). */
+.dark {
+  --color-primary-500: #8b5cf6;
+  --color-accent-500: #f59e0b;
+  --color-emerald-500: #34d399;
+  --color-rose-500: #fb7185;
+  --color-cyan-500: #22d3ee;
+  --color-pink-500: #f472b6;
+  --color-violet-500: #a78bfa;
+}
+
+/* Apply to body */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
